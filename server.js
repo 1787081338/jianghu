@@ -23,7 +23,62 @@ const today = () => dayStr();
 let db = { players: {}, accounts: {}, log: [], guilds: {}, npcs: {}, chat: [], dm: {}, world: { notice: '', noticeAt: 0, lastEvent: null, events: [], daily: null } };
 try { db = Object.assign(db, JSON.parse(fs.readFileSync(DATA, 'utf8'))); } catch (e) {}
 let saveTimer = null;
-const save = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { fs.writeFileSync(DATA, JSON.stringify(db)); } catch (e) {} }, 400); };
+/* ===== 云存档：用 GitHub 私库做持久化（免费平台无磁盘时使用） ===== */
+const GH_TOKEN = process.env.GH_TOKEN || '';
+const GH_REPO = process.env.GH_REPO || '';         // 形如 owner/repo
+const GH_PATH = process.env.GH_PATH || 'data.json';
+const GH_ON = !!(GH_TOKEN && GH_REPO);
+let ghTimer = null, ghBusy = false, ghSha = null;
+
+async function ghApi(pathname, opt) {
+  const r = await fetch('https://api.github.com' + pathname, Object.assign({
+    headers: { Authorization: 'Bearer ' + GH_TOKEN, Accept: 'application/vnd.github+json',
+      'User-Agent': 'jianghu-save' },
+  }, opt || {}));
+  return r;
+}
+async function ghLoad() {
+  if (!GH_ON) return;
+  try {
+    const r = await ghApi(`/repos/${GH_REPO}/contents/${GH_PATH}`);
+    if (r.status !== 200) { console.log('ghLoad: 远端暂无存档'); return; }
+    const j = await r.json();
+    ghSha = j.sha;
+    const txt = Buffer.from(j.content || '', 'base64').toString('utf8');
+    if (txt) { Object.assign(db, JSON.parse(txt)); console.log('ghLoad: 已从 GitHub 恢复存档'); }
+  } catch (e) { console.log('ghLoad 失败', e.message); }
+}
+async function ghSave() {
+  if (!GH_ON || ghBusy) return;
+  ghBusy = true;
+  try {
+    const body = JSON.stringify(db);
+    const put = () => ghApi(`/repos/${GH_REPO}/contents/${GH_PATH}`, {
+      method: 'PUT',
+      body: JSON.stringify({ message: 'save ' + new Date().toISOString(), content: Buffer.from(body).toString('base64'),
+        ...(ghSha ? { sha: ghSha } : {}) }),
+    });
+    let r = await put();
+    if (r.status === 409) { // sha 冲突，重新取
+      const g = await ghApi(`/repos/${GH_REPO}/contents/${GH_PATH}`);
+      if (g.status === 200) ghSha = (await g.json()).sha;
+      r = await put();
+    }
+    if (r.ok) { const j = await r.json(); ghSha = j.content && j.content.sha; }
+    else console.log('ghSave HTTP', r.status, (await r.text()).slice(0, 120));
+  } catch (e) { console.log('ghSave 失败', e.message); }
+  ghBusy = false;
+}
+function scheduleGhSave() {
+  if (!GH_ON) return;
+  clearTimeout(ghTimer);
+  ghTimer = setTimeout(() => { ghSave(); }, 8000);   // 8 秒合并一次，避免刷爆 API
+}
+
+const save = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => {
+  try { fs.writeFileSync(DATA, JSON.stringify(db)); } catch (e) {}
+  scheduleGhSave();
+}, 400); };
 function dayStr(d) {
   const x = d || new Date();
   return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
@@ -2143,4 +2198,7 @@ process.on('SIGINT', () => {
   try { fs.writeFileSync(DATA, JSON.stringify(db)); } catch (e) {}
   process.exit(0);
 });
-server.listen(PORT, '0.0.0.0', () => console.log('wuxia up on ' + PORT + ' | data=' + DATA));
+(async () => {
+  await ghLoad();
+  server.listen(PORT, '0.0.0.0', () => console.log('wuxia up on ' + PORT + ' | data=' + DATA + (GH_ON ? ' | gh=' + GH_REPO : '')));
+})();
