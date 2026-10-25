@@ -1,0 +1,10 @@
+{
+  "name": "jianghuxing",
+  "version": "1.0.0",
+  "description": "江湖行 · 武侠文字模拟器（零依赖 Node）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" }
+}

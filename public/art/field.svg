@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#7fc4f0"/><stop offset="55%" stop-color="#bfe2f7"/><stop offset="100%" stop-color="#e9f4d9"/>
+  </linearGradient>
+  <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#8fc86b"/><stop offset="100%" stop-color="#4f8f3f"/>
+  </linearGradient>
+  <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#d8cfbb"/><stop offset="100%" stop-color="#a89b83"/>
+  </linearGradient>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#cfc6b2"/><stop offset="100%" stop-color="#8f8674"/>
+  </linearGradient>
+  <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#fff8d0" stop-opacity=".95"/><stop offset="100%" stop-color="#ffd479" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#sky)"/>
+<circle cx="1240" cy="170" r="190" fill="url(#sun)"/>
+<g opacity=".75" fill="#ffffff">
+  <ellipse cx="260" cy="170" rx="120" ry="46"/><ellipse cx="340" cy="150" rx="90" ry="40"/>
+  <ellipse cx="880" cy="120" rx="140" ry="52"/><ellipse cx="980" cy="104" rx="90" ry="36"/>
+  <ellipse cx="1400" cy="250" rx="110" ry="40"/>
+</g>
+<!-- 远山 -->
+<path d="M0 470 L180 380 L330 450 L520 360 L700 455 L900 385 L1080 460 L1300 390 L1600 470 L1600 560 L0 560 Z" fill="#9fc7d8" opacity=".55"/>
+<path d="M0 520 L240 450 L430 510 L640 440 L860 515 L1080 450 L1320 520 L1600 460 L1600 600 L0 600 Z" fill="#8bb98f" opacity=".8"/>
+<!-- 城堡 -->
+<g transform="translate(1120,250)">
+  <rect x="0" y="120" width="300" height="180" fill="#eef2f6" stroke="#b9c4cf" stroke-width="4"/>
+  <rect x="-30" y="60" width="80" height="240" fill="#f4f7fa" stroke="#b9c4cf" stroke-width="4"/>
+  <rect x="250" y="40" width="90" height="260" fill="#f4f7fa" stroke="#b9c4cf" stroke-width="4"/>
+  <path d="M-34 60 L10 -10 L54 60 Z" fill="#4f7fbf"/>
+  <path d="M246 40 L295 -34 L344 40 Z" fill="#4f7fbf"/>
+  <path d="M0 120 L150 40 L300 120 Z" fill="#5c8fd0"/>
+  <g fill="#7fa8d8"><rect x="10" y="150" width="26" height="40"/><rect x="70" y="150" width="26" height="40"/>
+     <rect x="130" y="150" width="26" height="40"/><rect x="190" y="150" width="26" height="40"/>
+     <rect x="250" y="150" width="26" height="40"/></g>
+  <rect x="120" y="230" width="60" height="70" fill="#6d5a44"/>
+  <g fill="#d94b4b"><path d="M-24 70 l18 0 l-9 34 z"/><path d="M268 50 l20 0 l-10 38 z"/></g>
+</g>
+<!-- 草地 -->
+<rect y="560" width="1600" height="340" fill="url(#grass)"/>
+<path d="M0 560 Q400 520 800 560 T1600 560 L1600 600 L0 600 Z" fill="#7fbd63" opacity=".6"/>
+<!-- 石砌庭院（等距菱形） -->
+<g transform="translate(800,760)">
+  <path d="M0 -220 L520 40 L0 300 L-520 40 Z" fill="url(#stone)" stroke="#8b8069" stroke-width="6"/>
+  <g stroke="#9c9078" stroke-width="3" opacity=".8">
+    <path d="M-130 -155 L390 105 M-260 -90 L260 170 M-390 -25 L130 235 M130 -155 L650 105"/>
+    <path d="M130 -155 L-390 105 M260 -90 L-260 170 M390 -25 L-130 235 M-130 -155 L-650 105"/>
+  </g>
+</g>
+<!-- 低矮石墙 -->
+<g fill="url(#wall)">
+  <rect x="120" y="560" width="360" height="54" rx="6"/>
+  <rect x="1140" y="560" width="360" height="54" rx="6"/>
+</g>
+<g fill="#a89b83" opacity=".8">
+  <rect x="120" y="560" width="360" height="10"/><rect x="1140" y="560" width="360" height="10"/>
+</g>
+<!-- 树 -->
+<g transform="translate(240,700)"><rect x="-12" y="-60" width="24" height="80" fill="#6b4f32"/>
+  <circle cx="0" cy="-90" r="66" fill="#4f8f3f"/><circle cx="-40" cy="-70" r="46" fill="#5da34a"/>
+  <circle cx="44" cy="-72" r="44" fill="#3f7a35"/></g>
+<g transform="translate(1420,690)"><rect x="-10" y="-50" width="20" height="70" fill="#6b4f32"/>
+  <circle cx="0" cy="-78" r="54" fill="#4f8f3f"/><circle cx="36" cy="-62" r="38" fill="#5da34a"/></g>
+<!-- 石头 -->
+<g fill="#b6b0a2"><ellipse cx="520" cy="800" rx="46" ry="20"/><ellipse cx="1100" cy="820" rx="38" ry="16"/>
+  <ellipse cx="300" cy="830" rx="30" ry="13"/></g>
+<!-- 前景草 -->
+<path d="M0 860 Q200 830 400 862 T800 858 T1200 866 T1600 848 L1600 900 L0 900 Z" fill="#3f7a35" opacity=".9"/>
+</svg>

@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>江湖行 · 武侠文字模拟器</title>
+<style>
+:root{
+  --ink:#0f1216; --paper:#efe6d2; --paper2:#e3d6ba; --line:#c9b48a;
+  --gold:#d4af68; --gold2:#a8842f; --red:#9e2b25; --txt:#2a241a; --dim:#8c7a5c;
+  --jade:#4f8f6a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Songti SC","Noto Serif CJK SC",serif;color:var(--txt);
+  background:
+    radial-gradient(120% 60% at 50% 0%,#1b2430 0%,#0f1216 60%,#080a0d 100%) fixed,#0f1216;
+  min-height:100vh;max-width:640px;margin:0 auto;padding:0 0 24px;
+}
+.hidden{display:none!important}
+/* 顶部 */
+.hdr{display:flex;align-items:center;gap:8px;padding:12px 14px 8px}
+.seal{width:38px;height:38px;border-radius:6px;display:grid;place-items:center;font-size:15px;font-weight:900;
+  color:#fff5e0;background:linear-gradient(180deg,#b3372f,#7d1f1a);border:1px solid #5c1512;
+  box-shadow:0 3px 10px rgba(0,0,0,.5);font-family:system-ui}
+.who{flex:1}
+.who b{display:block;color:#f2e6cf;font-size:15px;letter-spacing:1px}
+.who span{font-size:10.5px;color:#8f9aa8;font-family:system-ui}
+.tools{display:flex;gap:6px}
+.tbtn{background:rgba(20,26,34,.9);border:1px solid #3b4654;color:#cfd6df;font-size:11px;
+  padding:5px 9px;border-radius:8px;font-family:system-ui}
+/* 属性 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 14px 10px}
+.st{border:1px solid #2b333d;border-radius:9px;padding:5px 6px;background:rgba(16,20,26,.85);text-align:center}
+.st b{display:block;font-size:13.5px;color:#e8d9b5;font-family:system-ui}
+.st span{font-size:9.5px;color:#7f8b99;font-family:system-ui}
+.st.hp b{color:#ff9a8a}.st.ni b{color:#8fd0ff}.st.wu b{color:#c8a6ff}
+.st.fa b{color:#ffd479}.st.mo b{color:#ffe08a}.st.ka b{color:#8fe0a8}
+.st.ka.neg b{color:#ff8f8f}
+/* 插图 */
+.illust{position:relative;margin:0 14px 12px;border-radius:12px;overflow:hidden;border:1px solid #3a3226;
+  box-shadow:0 10px 26px rgba(0,0,0,.55);aspect-ratio:16/10;background:#0b0d11}
+.illust img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.92) contrast(1.02)}
+.illust:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.05) 40%,rgba(8,10,14,.75))}
+.illust .cap{position:absolute;left:12px;bottom:10px;z-index:2;font-size:12px;color:#f0e2c4;letter-spacing:1px;text-shadow:0 2px 6px #000}
+/* 正文 */
+.scene{margin:0 14px}
+.title{font-size:17px;letter-spacing:3px;color:#f0dfb8;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.title:before{content:'— ';color:var(--gold2)}
+.text{font-size:15px;line-height:1.95;color:#ddd2ba;letter-spacing:.4px}
+.text p{margin:0 0 10px;text-indent:2em}
+/* 选项 */
+.choices{margin:14px 14px 0;display:flex;flex-direction:column;gap:9px}
+.ch{position:relative;text-align:left;border:1px solid #4a3d2a;border-radius:10px;padding:12px 14px 12px 34px;
+  font-size:14px;line-height:1.6;color:#ecdfc4;background:linear-gradient(180deg,rgba(38,34,26,.95),rgba(20,18,14,.95));
+  font-family:"Songti SC",serif;box-shadow:0 3px 12px rgba(0,0,0,.4)}
+.ch:before{content:'◆';position:absolute;left:12px;top:12px;font-size:10px;color:var(--gold)}
+.ch:active{transform:translateY(1px);border-color:var(--gold)}
+.ch small{display:block;color:#9a8a6e;font-size:11px;margin-top:3px;font-family:system-ui}
+/* 结局 */
+.ending{margin:16px 14px 0;border:1px solid #6b4a2a;border-radius:12px;padding:14px;text-align:center;
+  background:linear-gradient(180deg,rgba(60,40,20,.5),rgba(24,16,10,.7))}
+.ending .t{font-size:19px;letter-spacing:6px;color:#ffd88a;margin-bottom:8px}
+.ending p{font-size:12px;color:#b9a884;margin:0 0 12px;line-height:1.8;font-family:system-ui}
+/* 记录 / 登录 */
+.sheet{position:fixed;left:0;right:0;bottom:0;top:0;z-index:50;background:rgba(6,8,11,.88);padding:40px 16px 20px;overflow:auto}
+.sheet .box{background:linear-gradient(180deg,#1b1a16,#12110e);border:1px solid #4a3d2a;border-radius:14px;padding:16px;max-height:78vh;overflow:auto}
+.sheet h3{margin:0 0 10px;color:#e8d9b5;font-size:15px;letter-spacing:2px}
+.jrow{font-size:12.5px;line-height:1.8;color:#c3b696;border-bottom:1px dashed #2e2a22;padding:5px 0}
+.authwrap{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 18px}
+.authwrap .logo{text-align:center;margin-bottom:24px}
+.authwrap .logo .big{font-size:36px;letter-spacing:12px;color:#f2e2bd;
+  text-shadow:0 0 24px rgba(212,175,104,.35),0 2px 0 #000}
+.authwrap .logo .en{font-size:10px;letter-spacing:6px;color:#7d8794;margin-top:8px;font-family:system-ui}
+.authwrap .card{background:linear-gradient(180deg,#1b1a16,#12110e);border:1px solid #4a3d2a;border-radius:14px;padding:16px}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.tabs2 .t{text-align:center;padding:8px;border:1px solid #3d3527;border-radius:9px;font-size:13px;color:#9c8f76;font-family:system-ui}
+.tabs2 .t.on{color:#f0dfb8;border-color:var(--gold);background:rgba(212,175,104,.1)}
+label{display:block;font-size:11px;color:#8f8676;margin:10px 0 4px;font-family:system-ui}
+input{width:100%;padding:11px;border-radius:9px;border:1px solid #3d3527;background:#0c0b09;color:#e8dfc9;font-size:15px}
+.btn{width:100%;margin-top:14px;padding:12px;border-radius:10px;border:1px solid #6b5222;
+  background:linear-gradient(180deg,#e0c07a,#b08a3c);color:#2a1e08;font-size:15px;font-weight:900;letter-spacing:2px}
+.btn.dark{background:linear-gradient(180deg,#2a2620,#15130f);color:#d8cbb0;border-color:#4a3d2a}
+.err{color:#e0796a;font-size:11.5px;min-height:16px;margin-top:8px;font-family:system-ui}
+
+.mapcard{border:1px solid #4a3d2a;border-radius:11px;overflow:hidden;margin-bottom:10px;background:#12110e}
+.mapcard img{width:100%;height:130px;object-fit:cover;display:block;filter:saturate(.95)}
+.mapcard .d{padding:9px 11px}
+.mapcard b{color:#f0dfb8;font-size:14px;letter-spacing:2px}
+.mapcard p{margin:4px 0 0;font-size:11.5px;line-height:1.7;color:#a99a7e;font-family:system-ui}
+
+#noticeBar{margin:0 14px 8px;padding:8px 11px;border-radius:9px;font-size:12px;line-height:1.6;
+  background:linear-gradient(90deg,rgba(90,20,16,.55),rgba(40,16,10,.35));border:1px solid #6b3a2a;color:#ffd9c4}
+#noticeBar b{color:#ffb98a;letter-spacing:1px}
+.eventBar{margin:0 14px 8px;padding:7px 11px;border-radius:9px;font-size:11.5px;line-height:1.6;
+  background:linear-gradient(90deg,rgba(30,50,40,.6),rgba(16,26,20,.4));border:1px solid #3a5a44;color:#b8e0c4}
+#eventBar{margin:0 14px 8px;padding:7px 11px;border-radius:9px;font-size:11.5px;
+  background:linear-gradient(90deg,rgba(30,50,40,.6),rgba(16,26,20,.4));border:1px solid #3a5a44;color:#b8e0c4}
+.frozenTip{margin:10px 14px 0;padding:10px;border-radius:9px;background:rgba(60,20,20,.4);
+  border:1px solid #6b3a2a;color:#ffb0a0;font-size:12.5px;text-align:center}
+
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:14px 14px 0}
+.act{padding:9px 2px;border-radius:9px;border:1px solid #3d3527;background:linear-gradient(180deg,#232019,#14120e);
+  color:#cbbd9e;font-size:11.5px;font-family:system-ui}
+.act:active{border-color:var(--gold)}
+.battle{margin:0 14px;border:1px solid #5a3a2a;border-radius:12px;padding:12px;background:linear-gradient(180deg,#1a1512,#0e0c0a)}
+.bstage{position:relative;border-radius:10px;overflow:hidden;height:190px;border:1px solid #4a3226;margin-bottom:10px}
+.bstage img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;filter:saturate(.9) contrast(1.05)}
+.bstage:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(10,8,6,.9))}
+.bname{position:absolute;left:10px;bottom:34px;z-index:2;font-size:14px;color:#ffd8b8;letter-spacing:2px}
+.bbar{position:absolute;left:10px;right:10px;bottom:24px;height:8px;border-radius:5px;background:rgba(0,0,0,.6);border:1px solid #5a3a2a;overflow:hidden;z-index:2}
+.bbar i{display:block;height:100%;background:linear-gradient(90deg,#c8402f,#ff8a6a);transition:width .3s}
+.bhp{position:absolute;right:10px;bottom:8px;z-index:2;font-size:10px;color:#e0b8a8;font-family:system-ui}
+.blog{font-size:12.5px;line-height:1.8;color:#c8bca6;min-height:64px;max-height:120px;overflow:auto;font-family:system-ui}
+.bmoves{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}
+.mv{padding:10px 2px;border-radius:9px;border:1px solid #6b3a2a;background:linear-gradient(180deg,#3a2019,#1c100c);
+  color:#ffd8c4;font-size:11.5px;font-family:system-ui}
+.mv:active{border-color:#c8402f}
+
+.actions{grid-template-columns:repeat(4,1fr)}
+.pick{border:1px solid #4a3d2a;border-radius:9px;padding:9px 11px;margin-bottom:8px;background:#14120e}
+.pick.on{border-color:var(--gold);background:rgba(212,175,104,.08)}
+.pick b{color:#f0dfb8;font-size:13px}
+.pick span{display:block;font-size:11px;color:#9c8f76;margin-top:2px;font-family:system-ui}
+.pick .btn2{margin-top:6px;font-size:11px;padding:4px 10px;border-radius:7px;border:1px solid #5c4c2c;
+  background:#221d15;color:#d8c9a8;font-family:system-ui}
+
+#dailyBar{margin:0 14px 8px;padding:7px 11px;border-radius:9px;font-size:11.5px;line-height:1.6;
+  background:linear-gradient(90deg,rgba(60,44,20,.55),rgba(24,20,12,.4));border:1px solid #5a4a24;color:#e8d2a0}
+#dailyBar b{color:#ffcf7a}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,0) scale(.8)}20%{opacity:1;transform:translate(-50%,-14px) scale(1.05)}
+  100%{opacity:0;transform:translate(-50%,-58px) scale(1)}}
+.dmgnum{position:absolute;left:50%;top:44%;z-index:6;font-size:20px;font-weight:900;color:#ffd479;
+  text-shadow:0 2px 8px #000,0 0 14px rgba(255,120,60,.6);animation:floatUp .95s ease-out forwards;pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}
+  60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.shake{animation:shake .32s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.scene,.choices,.actions{animation:fadeIn .28s ease-out}
+
+#timeBar{margin:0 14px 8px;font-size:11px;color:#8a8f99;font-family:system-ui}
+#timeBar b{color:#e8d2a0}
+.taskrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed #2e2a22;font-size:12.5px}
+.taskrow .n{flex:1;color:#cbbd9e}
+.taskrow .pg{font-size:10.5px;color:#8a8f99;font-family:system-ui}
+</style></head>
+<body>
+
+<!-- 登录 -->
+<div id="auth" class="authwrap">
+  <div class="logo"><div class="big">江湖行</div><div class="en">A WUXIA TEXT SIMULATOR</div></div>
+  <div class="card">
+    <div class="tabs2"><div class="t on" id="tabLogin">登 录</div><div class="t" id="tabReg">注 册</div></div>
+    <label>账号（3-16 位字母/数字/下划线）</label>
+    <input id="u" autocapitalize="off" placeholder="例：xiake001">
+    <div id="nickBox" class="hidden"><label>江湖名号</label><input id="n" maxlength="12" placeholder="例：沈孤鸿"></div>
+    <label>密码（≥6 位）</label>
+    <input id="p" type="password" placeholder="••••••">
+    <div id="p2Box" class="hidden"><label>确认密码</label><input id="p2" type="password" placeholder="再输一次"></div>
+    <div class="err" id="err"></div>
+    <button class="btn" id="doAuth">登 录</button>
+  </div>
+</div>
+
+<!-- 游戏 -->
+<div id="game" class="hidden">
+  <div class="hdr">
+    <div class="seal" id="seal">侠</div>
+    <div class="who"><b id="pname">无名侠客</b><span id="puid">UID —</span></div>
+    <div class="tools">
+      <div class="tbtn" id="btnWorld">世界</div>
+      <div class="tbtn" id="btnMap">地图</div>
+      <div class="tbtn" id="btnLog">记录</div>
+      <div class="tbtn" id="btnReset">重开</div>
+      <div class="tbtn" id="btnOut">退出</div>
+    </div>
+  </div>
+  <div id="noticeBar" class="hidden"></div>
+  <div id="eventBar" class="hidden"></div>
+  <div id="dailyBar"></div>
+  <div id="timeBar"></div>
+  <div class="stats" id="stats"></div>
+  <div class="illust"><img id="art" src="art/scene-ai.jpg" alt=""><div class="cap" id="artCap"></div></div>
+  <div class="scene">
+    <div class="title" id="stTitle"></div>
+    <div class="text" id="stText"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+
+  <div class="actions" id="actions">
+    <button class="act" data-act="arts">📜 武学</button>
+    <button class="act" data-act="online">🌏 名录</button>
+    <button class="act" data-act="meet">👤 遇见</button>
+    <button class="act" data-act="rank">🏆 榜单</button>
+    <button class="act" data-act="guild">🏯 帮派</button>
+    <button class="act" data-act="daily">🌙 日常</button>
+    <button class="act" data-act="board">📋 委托</button>
+    <button class="act" data-act="train">🧘 修炼</button>
+    <button class="act" data-act="heal">💊 疗伤</button>
+    <button class="act" data-act="scout">👂 打听</button>
+  </div>
+  <div id="endingBox"></div>
+</div>
+
+<!-- 记录 -->
+<div id="battle" class="battle hidden">
+  <div class="bstage">
+    <img id="bArt" src="art/png/w_villain.png" alt="">
+    <div class="bname" id="bName"></div>
+    <div class="bbar"><i id="bHp"></i></div>
+    <div class="bhp" id="bHpTxt"></div>
+    <div id="bCombo" style="position:absolute;right:10px;bottom:48px;z-index:2;font-size:13px;font-weight:900;color:#ffd479;text-shadow:0 0 8px #000"></div>
+  </div>
+  <div class="blog" id="bLog"></div>
+  <div class="bmoves">
+    <button class="mv" data-move="attack">🗡 攻击</button>
+    <button class="mv" data-move="skill">⚡ 内力击（-10）</button>
+    <button class="mv" data-move="guard">🛡 格挡</button>
+    <button class="mv" data-move="flee">🏃 逃走</button>
+  </div>
+</div>
+
+<div id="artsSheet" class="sheet hidden">
+  <div class="box">
+    <h3>武学 · 职业 · 心法</h3>
+    <div class="tabs2" style="margin-bottom:12px">
+      <div class="t " id="tabJob">职业</div>
+      <div class="t" id="tabArt">武学</div>
+      <div class="t" id="tabMind">心法</div>
+    </div>
+    <div id="artsBody"></div>
+    <button class="btn dark" id="artsClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="boardSheet" class="sheet hidden">
+  <div class="box">
+    <h3>今日委托 <span id="timeTxt" style="font-size:10px;color:#8a8f99"></span></h3>
+    <div id="taskList"></div>
+    <div style="font-size:11px;color:#8a8f99;margin:14px 0 6px;font-family:system-ui">生计（赚银两，会花时间）</div>
+    <div class="grid2" id="jobBtns">
+      <button class="btn2" data-work="escort">押镖 40两（晨）</button>
+      <button class="btn2" data-work="serve">跑堂 15两（午）</button>
+      <button class="btn2" data-work="herb">抓药 20两（晨）</button>
+      <button class="btn2" data-work="teach">代馆 30两（午）</button>
+      <button class="btn2" data-work="watch">巡夜 25两（夜）</button>
+    </div>
+    <div id="lifeBox"></div>
+    <button class="btn dark" id="boardClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="guildSheet" class="sheet hidden">
+  <div class="box">
+    <h3>帮派</h3>
+    <div id="guildBody"></div>
+    <button class="btn dark" id="guildClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="rankSheet" class="sheet hidden">
+  <div class="box">
+    <h3>切磋榜 · 江湖名次</h3>
+    <div id="rankList"></div>
+    <button class="btn dark" id="rankClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="onlineSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江湖名录 <span style="font-size:10px;color:#8a8f99">（10 分钟内活跃）</span></h3>
+    <div id="onlineList"></div>
+    <button class="btn dark" id="onlineClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="bagSheet" class="sheet hidden">
+  <div class="box">
+    <h3>行囊</h3>
+    <div id="bagList"></div>
+    <button class="btn dark" id="bagClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="injectSheet" class="sheet hidden">
+  <div class="box">
+    <h3 id="injTitle">插曲</h3>
+    <div id="injText" style="font-size:14px;line-height:1.9;color:#ddd2ba"></div>
+    <div id="injOpts" style="margin-top:14px;display:flex;flex-direction:column;gap:9px"></div>
+  </div>
+</div>
+
+<div id="worldSheet" class="sheet hidden">
+  <div class="box">
+    <h3>世界观 · 天下九洲</h3>
+    <div id="worldBody" style="font-size:13px;line-height:1.95;color:#cbbd9e"></div>
+    <button class="btn dark" id="worldClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="mapSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江湖地图 · 四派</h3>
+    <div id="mapList"></div>
+    <button class="btn dark" id="mapClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="logSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江湖记录</h3>
+    <div id="logList"></div>
+    <button class="btn dark" id="logClose" style="margin-top:14px">合上</button>
+  </div>
+</div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+let token=localStorage.getItem('wuxia_token')||'', S=null, mode='login';
+
+async function api(p,b){
+  const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});
+  return r.json();
+}
+function setMode(m){
+  mode=m; const reg=m==='reg';
+  $('tabLogin').classList.toggle('on',!reg); $('tabReg').classList.toggle('on',reg);
+  $('nickBox').classList.toggle('hidden',!reg); $('p2Box').classList.toggle('hidden',!reg);
+  $('doAuth').textContent=reg?'注 册':'登 录'; $('err').textContent='';
+}
+async function doAuth(){
+  const user=$('u').value.trim().toLowerCase(), pass=$('p').value, err=$('err');
+  err.textContent='';
+  if(!/^[a-z0-9_]{3,16}$/.test(user)) return err.textContent='账号需 3-16 位字母/数字/下划线';
+  if(pass.length<6) return err.textContent='密码至少 6 位';
+  let r;
+  if(mode==='reg'){
+    if($('p2').value!==pass) return err.textContent='两次密码不一致';
+    r=await api('/api/register',{user,pass,nick:$('n').value.trim()});
+  } else r=await api('/api/login',{user,pass});
+  if(r.error) return err.textContent=r.error;
+  token=r.token; localStorage.setItem('wuxia_token',token);
+  S=r.state; showGame();
+}
+function showGame(){
+  $('auth').classList.add('hidden'); $('game').classList.remove('hidden');
+  render();
+}
+function render(){
+  if(!S) return;
+  const a=S.me.attrs;
+  $('pname').textContent=S.me.nick; $('puid').textContent='UID '+S.me.uid;
+  $('seal').textContent=S.me.nick.slice(0,1);
+  const rows=[['hp','气血',a.hp],['ni','内力',a.neili],['wu','悟性',a.wuxing],
+              ['fa','名望',a.fame],['mo','银两',a.money],['ka','善恶',a.karma]];
+  $('stats').innerHTML=rows.map(([c,n,v])=>`<div class="st ${c} ${c==='ka'&&v<0?'neg':''}"><b>${v}</b><span>${n}</span></div>`).join('');
+  const sc=S.scene;
+  const artKey=sc.art||'scene-ai';
+  const src=(artKey==='scene-ai')?'art/scene-ai.jpg':('art/png/'+artKey+'.png');
+  // 全服公告
+  const nb=$('noticeBar');
+  if(nb){
+    if(S.notice && S.notice.text){ nb.classList.remove('hidden'); nb.innerHTML='<b>【江湖传闻】</b>'+S.notice.text; }
+    else nb.classList.add('hidden');
+  }
+  const tb=$('timeBar');
+  if(tb && S.phase) tb.innerHTML='<b>'+S.phase.name+'</b> · 第 '+(S.day||1)+' 天 · '+(S.hour||0)+' 时'+(S.festival?(' · 🏮 '+S.festival.name):'');
+  const db=$('dailyBar');
+  if(db && S.daily){ db.innerHTML='<b>今日江湖：'+S.daily.name+'</b> · '+S.daily.desc; }
+  const eb=$('eventBar');
+  if(eb){
+    if(S.event && S.event.text){ eb.classList.remove('hidden'); eb.textContent='【江湖动态】'+S.event.text; }
+    else eb.classList.add('hidden');
+  }
+  // 插曲
+  if(S.inject){ showInject(); } else { $('injectSheet').classList.add('hidden'); }
+  // 战斗界面
+  const bd=S.battle;
+  if(bd){
+    $('battle').classList.remove('hidden');
+    $('art').style.display='none'; $('choices').style.display='none'; $('actions').style.display='none';
+    $('bArt').src='art/png/'+(bd.art||'w_villain')+'.png';
+    $('bArt').onerror=function(){this.onerror=null;this.src='art/png/w_villain.png';};
+    $('bName').textContent=bd.name;
+    const pct=Math.max(0,Math.round(bd.hp/bd.maxHp*100));
+    $('bHp').style.width=pct+'%';
+    $('bHpTxt').textContent=Math.max(0,bd.hp)+' / '+bd.maxHp;
+    $('bLog').innerHTML=(bd.log||[]).slice(-5).map(t=>'<div>'+t+'</div>').join('');
+    const last=(bd.log||[]).slice(-1)[0]||'';
+    const mnum=last.match(/造成 (\d+) 伤害/);
+    if(mnum && mnum[1]!==String(window.__lastDmg||'')){
+      window.__lastDmg=mnum[1];
+      const d=document.createElement('div'); d.className='dmgnum'; d.textContent='-'+mnum[1];
+      document.querySelector('.bstage').appendChild(d);
+      setTimeout(()=>d.remove(),950);
+      const bs=document.querySelector('.bstage'); if(bs){bs.classList.add('shake');setTimeout(()=>bs.classList.remove('shake'),340);}
+    }
+    $('bCombo').textContent=(bd.combo>1?('连招 ×'+bd.combo):'');
+  } else {
+    $('battle').classList.add('hidden');
+    $('art').style.display=''; $('choices').style.display=''; $('actions').style.display='';
+  }
+  $('art').src=src;
+  $('art').onerror=function(){this.onerror=null;this.src='art/scene-ai.jpg';};
+  $('artCap').textContent=sc.title||'';
+  $('stTitle').textContent=sc.title||'';
+  $('stText').innerHTML=(sc.text||[]).map(t=>'<p>'+t+'</p>').join('');
+  if(sc.ending){
+    $('choices').innerHTML='';
+    $('endingBox').innerHTML=`<div class="ending"><div class="t">终 章</div>
+      <p>此局已了。你的江湖，记在记录里。</p>
+      <button class="btn" id="againBtn">重 入 江 湖</button></div>`;
+    const b=$('againBtn'); if(b) b.onclick=()=>act('restart');
+    return;
+  }
+  $('endingBox').innerHTML='';
+  const frozenTip = S.frozen ? '<div class="frozenTip">你的命数被封住了，暂时无法做出选择。</div>' : '';
+  $('choices').innerHTML=frozenTip+(sc.choices||[]).map(c=>`<button class="ch" data-i="${c.i}" ${S.frozen?'disabled style="opacity:.4"':''}>${c.text}</button>`).join('')
+    + ((sc.locked&&sc.locked.length)? sc.locked.map(c=>`<div class="ch" style="opacity:.38;filter:grayscale(.6)">${c.text}<small>条件不足</small></div>`).join('') : '');
+  if(S.me.items.length){
+    $('stText').innerHTML+='<p style="font-size:11.5px;color:#8f8676;font-family:system-ui">携带：'+S.me.items.join('、')+'</p>';
+  }
+}
+let artTab='job';
+function renderArts(){
+  const cur=S.job, curArt=S.artKey, curMind=S.mind;
+  let html='';
+  if(artTab==='job'){
+    html=(S.jobs||[]).map(j=>`<div class="pick ${cur===j.key?'on':''}"><b>${j.name}${cur===j.key?' · 当前':''}</b>
+      <span>${j.desc}｜攻 ×${j.atk} 血 ×${j.hp}</span>
+      <button class="btn2" data-job="${j.key}">${cur===j.key?'已选':'选择'}</button></div>`).join('');
+  } else if(artTab==='art'){
+    const list=S.arts||[];
+    html=list.length? list.map(a=>`<div class="pick ${curArt===a.key?'on':''}"><b>${a.name}${curArt===a.key?' · 使用中':''}</b>
+      <span>${a.desc}｜倍率 ×${a.mult} · 耗内力 ${a.cost}</span>
+      <button class="btn2" data-art="${a.key}">${curArt===a.key?'已装备':'装备'}</button></div>`).join('')
+      :'<div class="pick"><b>尚未习得其他武学</b><span>去学剑、学毒、投门派，才能解锁更多招式</span></div>';
+    html+='<div style="font-size:10.5px;color:#7f8b99;margin-top:6px;font-family:system-ui">未解锁的武学需要对应秘籍或门派传承</div>';
+  } else {
+    html=(S.minds||[]).map(m=>`<div class="pick ${curMind===m.key?'on':''}"><b>${m.name}${curMind===m.key?' · 修习中':''}</b>
+      <span>${m.desc}｜气血上限 ${m.hpMax>0?'+':''}${m.hpMax} · 攻 ×${m.atk}</span>
+      <button class="btn2" data-mind="${m.key}">${curMind===m.key?'已修习':'修习'}</button></div>`).join('');
+  }
+  $('artsBody').innerHTML=html;
+  $('tabJob').classList.toggle('on',artTab==='job');
+  $('tabArt').classList.toggle('on',artTab==='art');
+  $('tabMind').classList.toggle('on',artTab==='mind');
+}
+async function openRank(){
+  const list=await (await fetch('/api/rank')).json();
+  $('rankList').innerHTML=list.length? list.map((o,i)=>`<div class="jrow" style="display:flex;align-items:center;gap:8px">
+    <b style="width:22px;color:${i<3?'#ffd479':'#8a8f99'}">${i+1}</b>
+    <div style="flex:1"><b style="color:#f0dfb8">${o.nick}</b>
+      <div style="font-size:10.5px;color:#8a8f99">${o.job} · ${o.place} · ${o.pvp.wins}胜 ${o.pvp.losses}负</div></div>
+    <b style="color:#e8c46a">${o.pvp.points}</b></div>`).join('')
+    :'<div class="jrow">还没有人切磋过</div>';
+  $('rankSheet').classList.remove('hidden');
+}
+async function openOnline(){
+  const list=await (await fetch('/api/online?token='+token)).json();
+  const npcs=await (await fetch('/api/npcs?token='+token)).json();
+  const npcHtml=npcs.length? '<div style="font-size:11px;color:#8a8f99;margin:10px 0 4px;font-family:system-ui">本地江湖人物（NPC）</div>'
+    + npcs.map(n=>`<div class="jrow"><b style="color:#d8c9a8">${n.name}</b> · ${n.title} · ${n.trait}
+      <div style="font-size:10.5px;color:#8a8f99">${n.purpose}：${n.purposeText} · 见你 ${n.met} 次 · ${n.mood}
+      · 交情 ${S.npcRel&&S.npcRel[n.id]?S.npcRel[n.id]:0}</div>
+      <button class="btn2" data-gift="${n.id}" style="margin-top:4px">送礼 20两</button></div>`).join('')
+    : '';
+  $('onlineList').innerHTML=(list.length? list.map(o=>`<div class="jrow">
+    <b style="color:#f0dfb8">${o.nick}${o.self?'（你）':''}</b> · ${o.job} · ${o.place}
+    <div style="font-size:10.5px;color:#8a8f99">${o.scene} · 内力 ${o.neili} · 名望 ${o.fame}</div></div>`).join('')
+    :'<div class="jrow">此刻没有其他玩家</div>')+npcHtml;
+  $('onlineSheet').classList.remove('hidden');
+}
+function openBoard(){
+  const ph=S.phase?S.phase.key:'morning';
+  $('timeTxt').textContent='（'+(S.phase?S.phase.name:'')+' · '+(S.hour||0)+' 时）';
+  $('taskList').innerHTML=(S.tasks||[]).map(t=>{
+    const done=t.progress>=t.goal;
+    return `<div class="taskrow">
+      <div class="n">${t.name}<div class="pg">${t.progress}/${t.goal}${t.claimed?' · 已领':''}</div></div>
+      ${t.claimed?'<span class="pg">已完成</span>':`<button class="btn2" data-claim="${t.id}" ${done?'':'disabled style="opacity:.4"'}>领赏</button>`}
+    </div>`;
+  }).join('')||'<div class="jrow">今日暂无委托</div>';
+  document.querySelectorAll('[data-work]').forEach(b=>{
+    const need={escort:'morning',serve:'noon',herb:'morning',teach:'noon',watch:'night'}[b.dataset.work];
+    b.disabled=(need!==ph); b.style.opacity=b.disabled?.35:1;
+  });
+  const H=S.home||{owned:false,level:0};
+  const rankNames=['记名弟子','正式弟子','执事','长老'];
+  const need=[0,100,300,700];
+  const rk=S.sectRank||0;
+  const cx=S.codex||{npcs:[],scenes:[],items:[]};
+  $('lifeBox').innerHTML=`
+    <div style="font-size:11px;color:#8a8f99;margin:14px 0 6px;font-family:system-ui">安家（${S.festival?S.festival.name:''}）</div>
+    <div class="taskrow"><div class="n">${H.owned?('小院 · '+H.level+'进'):'尚无宅子'}
+      <div class="pg">${H.owned?'可休息回血、收房租':'500 两买一处小院'}</div></div>
+      ${H.owned?`<button class="btn2" data-life="rest">歇息</button>
+        <button class="btn2" data-life="up">扩建 ${300*H.level}两</button>`
+        :'<button class="btn2" data-life="buyhome">买宅 500两</button>'}</div>
+    <div class="taskrow"><div class="n">坐骑：${S.mount?S.mount.name:'无'}
+      <div class="pg">赶路与打工省时</div></div>
+      ${S.mount?'':'<button class="btn2" data-life="mount">买马 300两</button>'}</div>
+    <div class="taskrow"><div class="n">门派：${S.sectRankName||'未入门'} · 贡献 ${S.sectExp||0}
+      <div class="pg">${rk<3?('下一次晋阶 '+(need[rk+1]-S.sectExp)+' 贡献'):'已至长老'}</div></div>
+      <button class="btn2" data-life="secttask">接差事</button></div>
+    <div class="taskrow"><div class="n">图鉴
+      <div class="pg">人物 ${cx.npcs.length} · 场景 ${cx.scenes.length} · 书册 ${cx.items.length}</div></div>
+      <button class="btn2" data-life="codex">买书 30两</button></div>
+  `;
+  $('boardSheet').classList.remove('hidden');
+}
+async function openGuild(){
+  const list=await (await fetch('/api/guilds')).json();
+  const g=S.guild;
+  let html='';
+  if(g){
+    html+=`<div class="pick on"><b>${g.name} · ${g.level}级</b>
+      <span>帮主 ${g.founder} · ${g.members} 人 · 经验 ${g.exp}/${g.level*300}</span>
+      <span>${g.notice}</span>
+      <button class="btn2" data-guild="donate">捐 50 两</button>
+      <button class="btn2" data-guild="leave">退出帮派</button></div>`;
+  } else {
+    html+=`<div class="pick"><b>创立帮派</b><span>花费 200 两，成为一帮之主</span>
+      <button class="btn2" data-guild="create">立 帮</button></div>`;
+  }
+  html+='<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">江湖帮派</div>';
+  html+=list.length? list.map(x=>`<div class="pick"><b>${x.name} · ${x.level}级</b>
+    <span>帮主 ${x.founder} · ${x.members} 人</span>
+    ${g?'':'<button class="btn2" data-join="'+x.id+'">加入</button>'}</div>`).join('')
+    :'<div class="pick"><span>还没有帮派，你可以做第一个</span></div>';
+  $('guildBody').innerHTML=html;
+  $('guildSheet').classList.remove('hidden');
+}
+function openBag(){
+  const items=(S.me.items||[]);
+  const gear=S.gear||{}, bag=S.gearBag||[];
+  const slotName={weapon:'兵器',armor:'护甲',accessory:'随身'};
+  let html='<div style="font-size:11px;color:#8a8f99;margin-bottom:6px;font-family:system-ui">已装备</div>';
+  html+=['weapon','armor','accessory'].map(k=>{
+    const g=gear[k];
+    return `<div class="jrow">${slotName[k]}：${g?(g.name+'（攻+'+g.atk+' 血+'+g.hp+'）'):'空'}</div>`;
+  }).join('');
+  html+=`<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">打造（60 两）</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn2" data-forge="weapon" style="flex:1">兵器</button>
+      <button class="btn2" data-forge="armor" style="flex:1">护甲</button>
+      <button class="btn2" data-forge="accessory" style="flex:1">随身</button>
+    </div>
+    <div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">装备背包</div>`;
+  html+=bag.length? bag.map((g,i)=>`<div class="jrow" style="display:flex;align-items:center;gap:8px">
+    <div style="flex:1">${g.name} <span style="color:#8a8f99;font-size:10.5px">攻+${g.atk} 血+${g.hp}</span></div>
+    <button class="btn2" data-equip="${i}">装备</button>
+    <button class="btn2" data-sell="${i}">卖</button></div>`).join('')
+    :'<div class="jrow" style="color:#8a8f99">没有多余装备</div>';
+  html+=`<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">物品</div>`;
+  html+=items.length? items.map(it=>`<div class="jrow">◈ ${it}</div>`).join('') :'<div class="jrow" style="color:#8a8f99">行囊空空</div>';
+  $('bagList').innerHTML=html;
+  $('bagSheet').classList.remove('hidden');
+}
+function showInject(){
+  const ins=S.inject; if(!ins) return;
+  $('injTitle').textContent=ins.title||'插曲';
+  $('injText').innerHTML=(ins.text||[]).map(t=>'<p>'+t+'</p>').join('');
+  $('injOpts').innerHTML=(ins.options||[]).map((o,i)=>`<button class="ch" data-inj="${i}">${o.text}</button>`).join('');
+  $('injectSheet').classList.remove('hidden');
+}
+async function act(type,extra){
+  const r=await api('/api/action',Object.assign({token,type},extra||{}));
+  if(r.error){ alert(r.error); return; }
+  S=r.state; render();
+}
+document.addEventListener('click',(e)=>{
+  const mv=e.target.closest('[data-move]');
+  if(mv){ return act('battle',{move:mv.dataset.move}); }
+  const ac=e.target.closest('[data-act]');
+  if(ac){
+    const t=ac.dataset.act;
+    if(t==='bag') return openBag();
+    if(t==='arts'){ artTab='job'; renderArts(); $('artsSheet').classList.remove('hidden'); return; }
+    if(t==='online') return openOnline();
+    if(t==='rank') return openRank();
+    if(t==='guild') return openGuild();
+    if(t==='daily') return act('toDaily');
+    if(t==='board') return openBoard();
+    return act(t);
+  }
+  const inj=e.target.closest('[data-inj]');
+  if(inj){ $('injectSheet').classList.add('hidden'); return act('choose',{idx:Number(inj.dataset.inj)}); }
+  const c=e.target.closest('[data-i]');
+  if(c) return act('choose',{idx:Number(c.dataset.i)});
+});
+$('tabLogin').onclick=()=>setMode('login');
+$('tabReg').onclick=()=>setMode('reg');
+$('doAuth').onclick=doAuth;
+$('btnLog').onclick=()=>{
+  $('logList').innerHTML=(S.log||[]).slice().reverse().map(t=>`<div class="jrow">${t}</div>`).join('')||'<div class="jrow">尚无记录</div>';
+  $('logSheet').classList.remove('hidden');
+};
+$('logClose').onclick=()=>$('logSheet').classList.add('hidden');
+const SECTS=[
+ {k:'w_sect_shaolin',n:'少林',d:'天下武学正宗。木人巷三十六关，过得了关的人才配谈慈悲。'},
+ {k:'w_sect_wudang',n:'武当',d:'云海之上的道门。剑走轻灵，讲的是后发先至、以柔克刚。'},
+ {k:'w_sect_emei',n:'峨眉',d:'金顶佛光，女弟子居多。心剑合一，剑在水里，也在心里。'},
+ {k:'w_sect_blood',n:'血刀门',d:'黑崖之上的凶地。入门礼是杀人，活下来的人才算同门。'},
+];
+const WORLD=[
+ ['大业十三年 · 天下大势','朝廷北有雁门关、西有凉州铁骑，南边是漕运与商帮。江湖上四派并立，明面尊朝廷，暗里各管一片。三年前玄阴教被六派围攻，教主下落不明，教众散入江湖。'],
+ ['四大门派','少林（武学正宗，木人巷三年一轮）、武当（道门，剑走轻灵）、峨眉（金顶，多为女弟子）、血刀门（黑崖凶地，入门要杀人）。'],
+ ['玄阴教','曾被视作魔教。教主是你叔父，教中有“外堂”“内堂”之分。玄阴令可调动边军，是朝廷最忌惮的东西。'],
+ ['玄阴令','不是武功秘籍，而是一份边军调动的凭信。持令者可越过兵部直接调兵。十七年前，你父亲奉命守令，最后死在六派手里。'],
+ ['十七人名单','名册上十九个名字，第一个被朱砂划掉的是你父亲，第十九行写着：“持青玉坠者，续。”'],
+ ['势力版图','朝廷（刑部/兵部/大内）↔ 六派 ↔ 玄阴余党 ↔ 漕运商会。四股势力互相牵制，任何一方倒了，江湖都要重排。'],
+ ['时间线','十七年前 雁门旧案 → 十六年前 破庙雪夜 → 三年前 玄阴教被围 → 现在 你入江湖。'],
+];
+$('btnWorld').onclick=()=>{
+  $('worldBody').innerHTML=WORLD.map(([t,d])=>`<div style="margin-bottom:12px"><b style="color:#e8c46a">${t}</b><div style="color:#b3a68c;margin-top:3px">${d}</div></div>`).join('');
+  $('worldSheet').classList.remove('hidden');
+};
+$('worldClose').onclick=()=>$('worldSheet').classList.add('hidden');
+
+$('btnMap').onclick=()=>{
+  $('mapList').innerHTML=SECTS.map(s=>`<div class="mapcard"><img src="art/png/${s.k}.png" alt="">
+    <div class="d"><b>${s.n}</b><p>${s.d}</p></div></div>`).join('');
+  $('mapSheet').classList.remove('hidden');
+};
+$('mapClose').onclick=()=>$('mapSheet').classList.add('hidden');
+$('bagClose').onclick=()=>$('bagSheet').classList.add('hidden');
+$('artsClose').onclick=()=>$('artsSheet').classList.add('hidden');
+$('onlineClose').onclick=()=>$('onlineSheet').classList.add('hidden');
+$('rankClose').onclick=()=>$('rankSheet').classList.add('hidden');
+$('guildClose').onclick=()=>$('guildSheet').classList.add('hidden');
+$('boardClose').onclick=()=>$('boardSheet').classList.add('hidden');
+document.addEventListener('click',(e)=>{
+  const d=e.target.dataset||{};
+  if(d.gift) return act('gift',{npcId:d.gift}).then(()=>{ $('onlineSheet').classList.add('hidden'); openOnline(); });
+  if(d.claim) return act('claim',{id:d.claim}).then(()=>openBoard());
+  if(d.work) return act('work',{kind:d.work}).then(()=>{ $('boardSheet').classList.add('hidden'); });
+  if(d.life){
+    const m={buyhome:'buyHome',rest:'restHome',up:'upgradeHome',secttask:'sectTask',codex:'buyCodex'};
+    if(d.life==='mount') return act('buyMount',{kind:'horse'}).then(()=>openBoard());
+    return act(m[d.life]).then(()=>openBoard());
+  }
+});
+document.addEventListener('click',(e)=>{
+  const d=e.target.dataset||{};
+  if(d.forge) return act('forge',{slot:d.forge}).then(()=>openBag());
+  if(d.equip!==undefined) return act('equipGear',{idx:Number(d.equip)}).then(()=>openBag());
+  if(d.sell!==undefined) return act('sellGear',{idx:Number(d.sell)}).then(()=>openBag());
+  if(d.join) return act('guildJoin',{id:d.join}).then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+  if(d.guild==='create'){ const n=prompt('帮派名（最多 8 字）',''); if(!n) return; return act('guildCreate',{name:n}).then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); }); }
+  if(d.guild==='donate') return act('guildDonate').then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+  if(d.guild==='leave') return act('guildLeave').then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+});
+$('tabJob').onclick=()=>{artTab='job';renderArts();};
+$('tabArt').onclick=()=>{artTab='art';renderArts();};
+$('tabMind').onclick=()=>{artTab='mind';renderArts();};
+document.addEventListener('click',(e)=>{
+  const j=e.target.dataset&&e.target.dataset.job; if(j) return act('setJob',{job:j}).then(()=>{renderArts();});
+  const a=e.target.dataset&&e.target.dataset.art; if(a) return act('setArt',{key:a}).then(()=>{renderArts();});
+  const m=e.target.dataset&&e.target.dataset.mind; if(m) return act('setMind',{key:m}).then(()=>{renderArts();});
+});
+$('btnReset').onclick=()=>{ if(confirm('重新开始？当前进度会清空')) act('restart'); };
+$('btnOut').onclick=()=>{ localStorage.removeItem('wuxia_token'); token=''; $('game').classList.add('hidden'); $('auth').classList.remove('hidden'); setMode('login'); };
+
+(async function boot(){
+  try{
+    if(!token){ $('auth').classList.remove('hidden'); setMode('login'); return; }
+    const st=await api('/api/state?token='+token);
+    if(st.error){ localStorage.removeItem('wuxia_token'); $('auth').classList.remove('hidden'); setMode('login'); return; }
+    S=st; showGame();
+  }catch(e){
+    $('auth').classList.remove('hidden'); setMode('login'); $('err').textContent='加载失败，请刷新';
+  }
+})();
+</script>
+<script>
+window.addEventListener('error',function(e){
+  try{var d=document.createElement('div');
+    d.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;background:rgba(120,24,20,.96);color:#fff;font:12px/1.5 monospace;padding:8px;border-radius:8px;white-space:pre-wrap';
+    d.textContent='脚本错误：'+(e.message||'未知')+' @'+(e.lineno||'');
+    document.body.appendChild(d);}catch(x){}
+});
+setTimeout(function(){
+  try{
+    var a=document.getElementById('auth'), g=document.getElementById('game');
+    if(a && g && a.classList.contains('hidden') && g.classList.contains('hidden')){
+      a.classList.remove('hidden'); console.warn('failsafe');
+    }
+  }catch(e){}
+},700);
+</script>
+</body></html>

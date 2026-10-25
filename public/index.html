@@ -1,0 +1,1862 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>江湖行 · 武侠文字模拟器</title>
+<meta name="theme-color" content="#0a0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="江湖行">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --ink:#0b0d10; --ink2:#12151a; --ink3:#191d24;
+  --paper:#e9e0cc; --paper2:#ded2b8;
+  --gold:#d6b471; --gold-d:#a5843c; --gold-l:#f0d9a8;
+  --red:#a3342c; --jade:#5c9e7e;
+  --txt:#e6dcc6; --dim:#8b8471; --line:#2a2f38;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Songti SC","Source Han Serif SC","Noto Serif CJK SC",serif;
+  color:var(--txt);
+  background:
+    radial-gradient(120% 70% at 50% -10%,#1a2330 0%,#0e1218 45%,#07090c 100%) fixed,#07090c;
+  min-height:100vh;max-width:660px;margin:0 auto;
+  padding:0 0 24px;
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:.2px;
+}
+.hidden{display:none!important}
+
+/* ============ 顶栏 ============ */
+.hdr{
+  position:sticky;top:0;z-index:30;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px 9px;
+  background:linear-gradient(180deg,rgba(9,12,16,.97),rgba(9,12,16,.86) 70%,rgba(9,12,16,0));
+  backdrop-filter:blur(6px);
+}
+.seal{
+  width:40px;height:40px;border-radius:7px;display:grid;place-items:center;
+  font-family:system-ui;font-size:16px;font-weight:800;color:#fdf2dc;
+  background:linear-gradient(160deg,#b33a30,#7d1d17);
+  border:1px solid rgba(255,220,180,.25);
+  box-shadow:0 4px 14px rgba(150,40,30,.35),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.who{flex:1;min-width:0}
+.who b{display:block;font-size:15px;letter-spacing:1.5px;color:#f4ead4;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.who span{display:block;font-size:10px;color:#7d8794;font-family:system-ui;margin-top:1px;letter-spacing:.5px}
+.tools{display:flex;gap:6px}
+.tbtn{
+  font-family:system-ui;font-size:11px;color:#cfd5de;
+  padding:6px 9px;border-radius:8px;
+  background:rgba(24,29,37,.9);border:1px solid #333b47;
+  transition:.15s;
+}
+.tbtn:active{background:rgba(45,55,70,.95);transform:translateY(1px)}
+
+/* ============ 状态胶囊 ============ */
+.stats{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+  padding:0 12px 10px;
+}
+.st{
+  background:linear-gradient(180deg,rgba(26,31,40,.95),rgba(14,18,24,.95));
+  border:1px solid #262c36;border-radius:9px;
+  padding:5px 2px 4px;text-align:center;position:relative;
+}
+.st b{display:block;font-family:system-ui;font-size:13px;line-height:1.15;font-weight:700}
+.st span{display:block;font-family:system-ui;font-size:8.5px;color:#6f7885;margin-top:1px;letter-spacing:.5px}
+.st.hp b{color:#ff9182}.st.ni b{color:#84c9f5}.st.wu b{color:#bfa4f0}
+.st.fa b{color:#f2cd7f}.st.mo b{color:#e8c98a}.st.ka b{color:#8fdcae}
+.st.ka.neg b{color:#ff8f8f}
+
+/* ============ 时间条 ============ */
+#timeBar{margin:0 14px 6px;font-family:system-ui;font-size:10.5px;color:#6f7885;letter-spacing:.5px}
+#timeBar b{color:#d6b471}
+#noticeBar,#eventBar{
+  margin:0 14px 8px;padding:7px 10px;border-radius:8px;
+  font-family:system-ui;font-size:11px;line-height:1.6;
+  border:1px solid #3a3323;background:rgba(48,38,20,.35);color:#d9c99f;
+}
+#noticeBar{border-color:#5a2b22;background:rgba(70,26,20,.35);color:#f2c3b4}
+#noticeBar b{color:#ffb39a}
+#eventBar{border-color:#28453a;background:rgba(20,50,40,.3);color:#a9dcc2}
+
+/* ============ 插图 ============ */
+.illust{
+  position:relative;margin:0 12px 14px;
+  border-radius:14px;overflow:hidden;
+  border:1px solid #33302a;
+  box-shadow:0 14px 34px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.04);
+  aspect-ratio:16/10;background:#0a0c10;
+}
+.illust img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.95) contrast(1.03)}
+.illust:after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(8,10,14,0) 35%,rgba(8,10,14,.55) 72%,rgba(8,10,14,.92) 100%);
+}
+.illust .cap{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:10px 14px 11px;font-size:12px;letter-spacing:2px;color:#e8dcc0;
+  text-shadow:0 2px 8px rgba(0,0,0,.9);
+}
+.illust .cap:before{content:'◈ ';color:var(--gold);font-size:10px}
+
+/* ============ 正文 ============ */
+.scene{margin:0 16px;padding-bottom:6px}
+.title{
+  font-size:16px;letter-spacing:4px;color:#eadcb8;
+  margin:0 0 12px;padding-bottom:9px;
+  border-bottom:1px solid rgba(214,180,113,.22);
+  position:relative;
+}
+.title:after{content:'';position:absolute;left:0;bottom:-1px;width:34px;height:1px;background:var(--gold)}
+.text{font-size:15.5px;line-height:2.05;color:#dcd2bb;letter-spacing:.4px}
+.text p{margin:0 0 12px;text-indent:2em;text-align:justify}
+.text p:last-child{margin-bottom:4px}
+.muted{color:var(--dim);font-family:system-ui}
+
+/* ============ 选项 ============ */
+.choices{margin:18px 14px 0;padding-bottom:6px;display:flex;flex-direction:column;gap:9px}
+.ch{
+  position:relative;display:block;width:100%;text-align:left;
+  padding:13px 15px 13px 38px;
+  border-radius:10px;border:1px solid #3b3527;
+  background:linear-gradient(180deg,rgba(38,34,26,.92),rgba(20,18,14,.94));
+  color:#ecdfc4;font-size:14.5px;line-height:1.65;
+  font-family:inherit;letter-spacing:.3px;
+  box-shadow:0 3px 12px rgba(0,0,0,.35);
+  transition:.16s;
+}
+.ch:before{
+  content:'◇';position:absolute;left:15px;top:13px;
+  font-size:12px;color:var(--gold-d);transition:.16s;
+}
+.ch:active{transform:translateY(1px);border-color:var(--gold);background:linear-gradient(180deg,rgba(52,44,30,.95),rgba(26,22,16,.95))}
+.ch:active:before{color:var(--gold)}
+.ch small{display:block;color:#8b8471;font-size:11px;margin-top:4px;font-family:system-ui}
+
+/* ============ 底部操作坞（页面流内） ============ */
+.actions{
+  display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;
+  margin:22px 12px 6px;padding:10px 8px;
+  border-radius:14px;border:1px solid #2a2f38;
+  background:linear-gradient(180deg,rgba(20,24,30,.95),rgba(12,15,19,.98));
+}
+.actions::-webkit-scrollbar{display:none}
+.act{
+  flex:0 0 auto;min-width:62px;
+  background:none;border:0;color:#8b8471;
+  font-family:system-ui;font-size:10px;letter-spacing:.2px;
+  padding:5px 2px;border-radius:8px;transition:.15s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;
+}
+.act:before{font-size:17px;line-height:1.25}
+.act[data-act="board"]:before{content:'📋'}
+.act[data-act="arts"]:before{content:'📜'}
+.act[data-act="bag"]:before{content:'🎒'}
+.act[data-act="me"]:before{content:'🧍'}
+.act[data-act="jianghu"]:before{content:'🌏'}
+.act[data-act="socialhub"]:before{content:'👥'}
+.act[data-act="map"]:before{content:'🗺'}
+.act[data-act="me"]:before{content:'🧍'}
+.act[data-act="guild"]:before{content:'🏯'}
+.act[data-act="daily"]:before{content:'🌙'}
+.act[data-act="meet"]:before{content:'👤'}
+.act[data-act="online"]:before{content:'🌏'}
+.act[data-act="rank"]:before{content:'🏆'}
+.act[data-act="train"]:before{content:'🧘'}
+.act[data-act="social"]:before{content:'👥'}
+.act[data-act="mail"]:before{content:'✉'}
+.act[data-act="settings"]:before{content:'⚙'}
+.act[data-act="fight"]:before{content:'🔍'}
+.dock-dot{position:absolute;top:2px;right:14px;min-width:7px;height:7px;border-radius:4px;background:#c8402f}
+.act:active{color:#e8d9b5;background:rgba(214,180,113,.08)}
+
+/* ===== 战斗页（全屏独立页） ===== */
+.battle{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;
+  background:radial-gradient(90% 60% at 50% 0%,#1b2230 0%,#0c1016 55%,#07090c 100%);
+  padding:calc(10px + env(safe-area-inset-top)) 0 calc(10px + env(safe-area-inset-bottom));
+  animation:battleIn .25s ease-out}
+@keyframes battleIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.battle.hidden{display:none}
+.bhead{display:flex;align-items:center;gap:10px;padding:6px 14px 10px;
+  border-bottom:1px solid #22282f}
+.bround{font-family:system-ui;font-size:11.5px;color:#d6b471;letter-spacing:1px;white-space:nowrap}
+.borderline{display:flex;gap:5px;overflow-x:auto;flex:1;scrollbar-width:none}
+.borderline::-webkit-scrollbar{display:none}
+.borderline .o{width:26px;height:26px;border-radius:8px;overflow:hidden;flex:0 0 auto;position:relative;
+  border:1px solid #3a3122;opacity:.55;background:#14110d}
+.borderline .o img{width:100%;height:100%;object-fit:cover}
+.borderline .o span{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:system-ui;font-size:10px;color:#d8c9a8}
+.borderline .o.now{border-color:var(--gold);opacity:1;box-shadow:0 0 10px rgba(214,180,113,.55)}
+.bfield{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;
+  padding:16px 10px;overflow:auto}
+.brow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.bvs{text-align:center;font-size:12px;color:#5d5647;letter-spacing:8px;font-family:system-ui}
+.bu{width:74px;text-align:center;position:relative}
+.bu .av{width:66px;height:66px;margin:0 auto;border-radius:15px;overflow:hidden;position:relative;
+  border:1.5px solid #3a3326;background:#14120e;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+.bu .av img{width:100%;height:100%;object-fit:cover;object-position:50% 16%}
+.bu .av .ph{position:absolute;inset:0;display:grid;place-items:center;font-family:system-ui;
+  font-size:22px;color:#e8d9b5;background:linear-gradient(160deg,#3a2f22,#1a1510)}
+.bu.foe .av{border-color:#5c2b22}
+.bu.ally .av{border-color:#46583a}
+.bu .nm{font-family:system-ui;font-size:10px;color:#cbbd9e;margin-top:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bu .hpn{font-family:system-ui;font-size:9px;color:#8b8471;margin-top:1px}
+.bu .hpbar{height:5px;border-radius:3px;background:rgba(0,0,0,.66);margin-top:2px;overflow:hidden}
+.bu .hpbar i{display:block;height:100%;transition:width .3s}
+.bu.foe .hpbar i{background:linear-gradient(90deg,#8f2b23,#ff8a6a)}
+.bu.ally .hpbar i{background:linear-gradient(90deg,#37604a,#7fe0a8)}
+.bu.turn .av{border-color:var(--gold);box-shadow:0 0 0 2px rgba(214,180,113,.45),0 0 22px rgba(214,180,113,.5)}
+.bu.turn .nm{color:#f0d9a8}
+.bu.sel .av{border-color:#ffd479;box-shadow:0 0 0 2px #ffd479,0 0 20px rgba(255,212,121,.55)}
+.bu.dead{opacity:.26;filter:grayscale(1)}
+.bu .dmg{position:absolute;left:50%;top:2px;z-index:6;font-family:system-ui;font-size:15px;font-weight:800;
+  color:#ffd479;text-shadow:0 2px 8px #000;animation:floatUp .9s ease-out forwards;pointer-events:none}
+.blog{margin:0 12px;padding:10px 12px;border-radius:10px;border:1px solid #22282f;
+  background:rgba(10,13,18,.7);font-family:system-ui;font-size:11.5px;line-height:1.8;color:#a99d86;
+  max-height:88px;overflow:auto}
+.bmoves{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:10px;background:#1b2027}
+.mv{padding:13px 2px 12px;border:0;background:linear-gradient(180deg,#241a14,#140f0b);
+  color:#e6d2b4;font-family:system-ui;font-size:12px;display:flex;flex-direction:column;gap:2px;align-items:center}
+.mv b{font-weight:600;letter-spacing:1px}
+.mv small{font-size:9px;color:#6f6858}
+.mv:active{background:linear-gradient(180deg,#3a271c,#1d140e)}
+.mv:disabled{opacity:.32}
+
+/* ===== 补回：弹层 / 卡片 / 表单 / 登录（此前被误删） ===== */
+.hdr{display:flex;align-items:center;gap:10px;padding:10px 14px 6px;position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,rgba(10,12,10,.98),rgba(10,12,10,.92));
+  backdrop-filter:blur(8px);border-bottom:1px solid rgba(90,74,44,.25)}
+.seal{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#7a2f24,#3a1510);border:1px solid #8a5a2e;
+  color:#f5e3bd;font-size:17px;font-weight:700;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.topActs{display:flex;gap:5px;flex:0 0 auto}
+.ib{width:28px;height:28px;border-radius:50%;border:1px solid #3a3326;background:rgba(22,20,16,.85);
+  color:#cbbd9e;font-size:14px;display:grid;place-items:center;padding:0}
+.who{flex:1;min-width:0}
+.nmLine{display:flex;align-items:center;gap:7px}
+.nmLine b{font-size:15px;color:#f0dfb8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nmLine em{font-style:normal;font-family:system-ui;font-size:10px;color:#d6b471;
+  border:1px solid #4a3b24;border-radius:9px;padding:1px 7px;flex:0 0 auto}
+.metaLine{display:flex;gap:8px;margin-top:3px;font-family:system-ui;font-size:10.5px;color:#7d8794}
+.metaLine i{font-style:normal;color:#9aa08c}
+.tools{display:none}
+.who{flex:1 1 120px;min-width:0}
+.who b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools{flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(4,6,9,.88);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  padding:36px 14px 20px;overflow:auto;animation:fadeIn .2s}
+.sheet .box{background:linear-gradient(180deg,#1a1a17,#101210);border:1px solid #3d3728;
+  border-radius:14px;padding:16px;max-height:82vh;overflow:auto;
+  box-shadow:0 24px 60px rgba(0,0,0,.7)}
+.sheet h3{margin:0 0 12px;font-size:14px;letter-spacing:3px;color:#e8d9b5;
+  padding-bottom:9px;border-bottom:1px solid rgba(214,180,113,.2)}
+.jrow{font-family:system-ui;font-size:12.5px;line-height:1.85;color:#c3b696;
+  border-bottom:1px dashed #262219;padding:7px 0}
+.jrow:last-child{border-bottom:0}
+
+.pick{border:1px solid #3b3527;border-radius:10px;padding:10px 12px;margin-bottom:8px;
+  background:linear-gradient(180deg,#171a16,#0f120e)}
+.pick.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(214,180,113,.2)}
+.pick b{color:#f0dfb8;font-size:13.5px;display:block}
+.pick span{display:block;font-family:system-ui;font-size:11px;color:#948a74;margin-top:3px;line-height:1.65}
+.btn2{display:inline-block;margin-top:7px;margin-right:6px;font-family:system-ui;font-size:11px;
+  padding:5px 12px;border-radius:7px;border:1px solid #4d432c;background:#1d1a13;color:#d8c9a8}
+.btn2:active{background:#2a2519;border-color:var(--gold)}
+
+.tabs2{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-bottom:14px}
+.tabs2 .t{text-align:center;padding:9px 4px;border:1px solid #3b3527;border-radius:9px;
+  font-family:system-ui;font-size:12px;color:#948a74}
+.tabs2 .t.on{color:#f0dfb8;border-color:var(--gold);background:rgba(214,180,113,.08)}
+
+.btn{width:100%;padding:12px;border-radius:10px;border:1px solid #6b5222;
+  background:linear-gradient(180deg,#e6c88a,#b08a3c);color:#2a1e08;
+  font-size:15px;font-weight:700;letter-spacing:2px;font-family:inherit}
+.btn:active{opacity:.9}
+.btn.dark{background:linear-gradient(180deg,#242019,#14110d);color:#d8cbb0;border-color:#3f3526}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.taskrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #262219;
+  font-family:system-ui;font-size:12.5px;flex-wrap:wrap}
+.taskrow .n{flex:1 1 140px;color:#cbbd9e;font-size:12.5px}
+.taskrow .pg{font-family:system-ui;font-size:10.5px;color:#7d8794}
+.mapcard{border:1px solid #3b3527;border-radius:11px;overflow:hidden;margin-bottom:10px;background:#12110e}
+.mapcard img{width:100%;height:132px;object-fit:cover;display:block}
+.mapcard .d{padding:10px 12px}
+.mapcard b{color:#f0dfb8;font-size:13.5px}
+.mapcard p{margin:5px 0 0;font-family:system-ui;font-size:11.5px;line-height:1.7;color:#948a74}
+
+/* 登录页 */
+.authwrap{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 20px}
+.authwrap .logo{text-align:center;margin-bottom:24px}
+.authwrap .logo .big{font-size:36px;letter-spacing:12px;color:#f2e2bd;text-shadow:0 0 28px rgba(214,180,113,.3)}
+.authwrap .logo .en{font-family:system-ui;font-size:9.5px;letter-spacing:6px;color:#6f7885;margin-top:9px}
+.authwrap .card{background:linear-gradient(180deg,#1a1a17,#101210);border:1px solid #3d3728;
+  border-radius:14px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+label{display:block;font-family:system-ui;font-size:11px;color:#8b8471;margin:12px 0 5px}
+input{width:100%;padding:12px;border-radius:9px;border:1px solid #3b3527;
+  background:#0b0d0a;color:#e8dfc9;font-size:15px;font-family:system-ui}
+input:focus{outline:none;border-color:var(--gold)}
+.err{color:#e0796a;font-family:system-ui;font-size:11.5px;min-height:16px;margin-top:9px}
+
+.setrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px dashed #262219;
+  font-family:system-ui;font-size:12.5px;color:#cbbd9e}
+.setrow span{width:44px;flex:0 0 auto}
+.setrow input[type=range]{flex:1;accent-color:#d6b471;height:4px}
+.setrow b{width:32px;text-align:right;color:#e8c46a;font-weight:600}
+
+.scene,#choices{transition:opacity .2s ease, transform .2s ease}
+.scene.swapping,#choices.swapping{opacity:0;transform:translateY(6px)}
+.stText p{animation:fadeUp .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.choices.typing{opacity:.35;transition:opacity .2s}
+.choices.typing .ch{pointer-events:none}
+.choices .ch{animation:fadeUp .3s ease both}
+.choices .ch:nth-child(2){animation-delay:.05s}
+.choices .ch:nth-child(3){animation-delay:.1s}
+.choices .ch:nth-child(4){animation-delay:.15s}
+
+.stHead{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.stSeal{width:52px;height:52px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#5a2a22,#2a1510);border:1px solid #6b4a2a;
+  color:#f0dcb4;font-size:22px;font-weight:700}
+.stName{font-size:17px;color:#f0dfb8}
+.stSub{font-family:system-ui;font-size:10.5px;color:#8b8471;margin-top:3px}
+.stGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:6px 0 10px}
+.stGrid>div{background:rgba(255,255,255,.03);border:1px solid #2b2721;border-radius:9px;padding:8px 6px;text-align:center}
+.stGrid i{display:block;font-style:normal;font-family:system-ui;font-size:10px;color:#8b8471}
+.stGrid b{display:block;font-size:15px;color:#e8d9b5;margin-top:2px}
+.stBar{height:6px;border-radius:4px;background:rgba(0,0,0,.5);border:1px solid #33302a;overflow:hidden}
+.stBar i{display:block;height:100%;background:linear-gradient(90deg,#4a6b3f,#d6b471)}
+.stTip{font-family:system-ui;font-size:10.5px;color:#7d8794;margin:5px 0 4px}
+.stSec{font-family:system-ui;font-size:11px;letter-spacing:3px;color:#a08c5e;margin:14px 0 7px;
+  padding-bottom:5px;border-bottom:1px solid rgba(214,180,113,.15)}
+.stItem{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #262219;flex-wrap:wrap}
+.stItem b{color:#e8d9b5;font-size:13px;width:44px}
+.stItem span{flex:1;font-family:system-ui;font-size:11.5px;color:#9c927c;min-width:90px}
+.stItem em.lv{font-style:normal;font-family:system-ui;font-size:10.5px;color:#d6b471}
+
+.vigTip{font-family:system-ui;font-size:10px;color:#6f6858}
+.vigBtn{font-family:system-ui;font-size:10.5px;color:#2a1e08;background:#d6b471;border:0;
+  border-radius:7px;padding:3px 9px;margin-left:2px}
+
+.hidden{display:none!important}
+.authwrap{position:fixed;inset:0;z-index:200;overflow:auto;background:
+  radial-gradient(90% 70% at 50% 0%,#141a22 0%,#0a0c10 60%,#06070a 100%)}
+
+#goalBar{display:flex;align-items:center;gap:8px;margin:0 14px 6px;
+  font-family:system-ui;font-size:11px;color:#a99d86}
+#goalBar .gobj{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#cbbd9e}
+#goalBar .rm{flex:0 0 auto;color:#d6b471;font-size:10.5px}
+#vigorBar{margin:0 14px 6px}
+#timeBar{margin:0 14px 8px;font-family:system-ui;font-size:10.5px;color:#7d8794}
+
+.tabs2.grid3{grid-auto-flow:row;grid-template-columns:repeat(3,1fr)}
+.cxGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cxCard{border:1px solid #332e24;border-radius:11px;overflow:hidden;background:rgba(255,255,255,.02);padding-bottom:8px}
+.cxCard img{width:100%;height:96px;object-fit:cover;display:block;background:#f7f4ec}
+.cxCard.mind img{object-fit:contain;padding:6px}
+.cxCard.art{background:linear-gradient(180deg,#141820,#0d0f14)}
+.cxCard.art img{width:78px;height:78px;margin:10px auto 0;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 18px rgba(120,180,255,.18);border:1px solid #2c3542;background:#0d1016}
+.cxCard b{display:block;font-size:12px;color:#e8d9b5;margin:7px 8px 2px}
+.cxCard span{display:block;font-family:system-ui;font-size:10px;color:#8b8471;margin:0 8px;line-height:1.5}
+.cxCard.lock img{filter:grayscale(1) brightness(.35)}
+.cxCard.lock b{color:#6f6858}
+
+.feedbar{margin:0 14px 6px;padding:7px 11px;border-radius:9px;display:flex;gap:7px;align-items:center;
+  position:sticky;top:56px;z-index:39;backdrop-filter:blur(6px);
+  background:linear-gradient(90deg,rgba(60,44,20,.55),rgba(30,26,18,.55));
+  border:1px solid #4a3a20;font-family:system-ui;font-size:11px;color:#dcc79a;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feedbar .dot{width:6px;height:6px;border-radius:50%;background:#e0a94a;flex:0 0 auto;
+  box-shadow:0 0 8px #e0a94a;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#feedText{overflow:hidden;text-overflow:ellipsis}
+.feedItem{padding:9px 0;border-bottom:1px dashed #262219;font-family:system-ui;font-size:12px;color:#c3b696;line-height:1.7}
+.feedItem b{color:#e8c46a;font-weight:500;margin-right:6px;font-size:10.5px}
+
+/* ===== 章节切换卡（此前样式丢失，导致文字掉在页面底部） ===== */
+.chapterCard{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;text-align:center;
+  background:radial-gradient(80% 60% at 50% 45%,rgba(22,18,12,.97),rgba(5,5,7,.99));
+  animation:fadeIn .25s ease}
+.chapterCard .no{font-family:system-ui;font-size:10px;letter-spacing:6px;color:#7d7461}
+.chapterCard .nm{font-size:26px;letter-spacing:10px;color:#f0dfb8;
+  text-shadow:0 0 26px rgba(214,180,113,.35);margin:10px 0 6px}
+.chapterCard .sub{font-family:system-ui;font-size:11px;color:#8b8471;letter-spacing:2px}
+.chapterCard .cta{margin-top:26px;font-family:system-ui;font-size:12px;color:#d6b471;
+  border:1px solid #4a3d2a;padding:9px 24px;border-radius:20px;background:rgba(30,26,18,.8)}
+
+.toastMsg{position:fixed;left:50%;bottom:74px;transform:translateX(-50%) translateY(8px);
+  max-width:82vw;padding:9px 15px;border-radius:20px;font-family:system-ui;font-size:12px;
+  color:#f0dfb8;background:rgba(24,20,14,.95);border:1px solid #5a4a2c;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:150;text-align:center}
+.toastMsg.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.talkBox{padding-top:12px}
+.talkHead{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.talkHead img{width:64px;height:64px;border-radius:12px;object-fit:cover;object-position:50% 18%;
+  border:1px solid #4a3d2a;background:#0d0f0c;flex:0 0 auto}
+.talkWho b{display:block;font-size:16px;color:#f0dfb8}
+.talkWho span{display:block;font-family:system-ui;font-size:10.5px;color:#8b8471;margin-top:3px}
+.talkLine{font-size:14px;line-height:2;color:#ddd0b4;border-left:2px solid #5a4a2c;
+  padding:2px 0 2px 12px;margin:6px 0 14px;min-height:44px}
+.talkActs{display:flex;flex-wrap:wrap;gap:8px}
+.talkActs .btn2{margin:0}
+</style></head>
+<body>
+<div id="offlineBar" style="display:none;position:fixed;left:0;right:0;top:0;z-index:300;
+  padding:10px 14px;background:#5a1f18;color:#ffd9cf;font:12px/1.6 system-ui;text-align:center">
+  本地服务没有运行 —— 请回到 DSH 终端执行 <b>cd ~/.dsh/workspaces/incoming/wuxia &amp;&amp; ./start.sh</b>
+  <button onclick="location.reload()" style="margin-left:8px;padding:3px 10px;border-radius:8px;
+    border:1px solid #a05548;background:#2a0f0c;color:#ffd9cf">重试</button>
+</div>
+
+<!-- 登录 -->
+<div id="auth" class="authwrap">
+  <div class="logo"><div class="big">江湖行</div><div class="en">A WUXIA TEXT SIMULATOR</div></div>
+  <div class="card">
+    <div class="tabs2"><div class="t on" id="tabLogin">登 录</div><div class="t" id="tabReg">注 册</div></div>
+    <label>账号（3-16 位字母/数字/下划线）</label>
+    <input id="u" autocapitalize="off" placeholder="例：xiake001">
+    <div id="nickBox" class="hidden"><label>江湖名号</label><input id="n" maxlength="12" placeholder="例：沈孤鸿"></div>
+    <label>密码（≥6 位）</label>
+    <input id="p" type="password" placeholder="••••••">
+    <div id="p2Box" class="hidden"><label>确认密码</label><input id="p2" type="password" placeholder="再输一次"></div>
+    <div class="err" id="err"></div>
+    <button class="btn" id="doAuth">登 录</button>
+  </div>
+</div>
+
+<!-- 游戏 -->
+<div id="game" class="hidden">
+  <div id="audioHint" style="margin:8px 14px 0;padding:7px 11px;border-radius:8px;
+    font-family:system-ui;font-size:11px;color:#e2cf9e;background:rgba(50,40,20,.5);
+    border:1px solid #4a3a20">🔊 点一下屏幕开启音乐</div>
+  <div class="hdr">
+    <div class="seal" id="seal">侠</div>
+    <div class="who">
+      <div class="nmLine"><b id="pname">无名侠客</b><em id="prealm">凡体</em></div>
+      <div class="metaLine"><span id="puid">UID —</span><i id="ploc">长安</i></div>
+    </div>
+    <div class="topActs">
+      <button class="ib" id="btnWorld2" aria-label="世界">🌏</button>
+      <button class="ib" id="btnMap2" aria-label="地图">🗺</button>
+      <button class="ib" id="btnMail" aria-label="邮件">✉</button>
+      <button class="ib" id="btnSet" aria-label="设置">⚙</button>
+      <button class="ib" id="btnMore" aria-label="更多">⋯</button>
+    </div>
+  </div>
+  <div id="feedBar" class="feedbar" onclick="openFeed()">
+    <span class="dot"></span><span id="feedText">江湖风平浪静</span>
+  </div>
+  <div id="eventBar" class="hidden"></div>
+  <div id="goalBar"></div>
+  <div id="vigorBar"></div>
+  <div id="timeBar"></div>
+  <div class="stats" id="stats"></div>
+  <div class="illust"><img id="art" src="art/scene-ai.jpg" alt=""><div class="cap" id="artCap"></div></div>
+  <div class="scene">
+    <div class="title" id="stTitle"></div>
+    <div class="text" id="stText"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+
+  <div class="actions" id="actions">
+    <button class="act" data-act="me">人物</button>
+    <button class="act" data-act="jianghu">江湖</button>
+    <button class="act" data-act="map">地图</button>
+    <button class="act" data-act="socialhub">江湖录</button>
+    <button class="act" data-act="bag">背包</button>
+  </div>  </div>
+
+  <div id="endingBox"></div>
+  <span id="btnWorld" hidden></span><span id="btnMap" hidden></span><span id="btnLog" hidden></span>
+  <span id="btnReset" hidden></span><span id="btnOut" hidden></span><span id="mailDot" hidden></span>
+
+
+<!-- 记录 -->
+<div id="battle" class="battle hidden">
+  <div class="bhead">
+    <div class="bround" id="bRound">第 1 回合</div>
+    <div class="borderline" id="bOrder"></div>
+  </div>
+  <div class="bfield">
+    <div class="brow foe" id="foeRow"></div>
+    <div class="bvs">⚔</div>
+    <div class="brow ally" id="allyRow"></div>
+  </div>
+  <div class="blog" id="bLog"></div>
+  <div class="bmoves">
+    <button class="mv" data-move="attack"><b>攻击</b><small>普攻</small></button>
+    <button class="mv" data-move="skill" id="mvSkill"><b>武学</b><small>耗内力</small></button>
+    <button class="mv" data-move="guard"><b>格挡</b><small>减伤</small></button>
+    <button class="mv" data-move="flee"><b>逃走</b><small>60%</small></button>
+  </div>
+</div>
+
+<div id="boardSheet" class="sheet hidden">
+  <div class="box">
+    <h3>今日委托 <span id="timeTxt" style="font-size:10px;color:#8a8f99"></span></h3>
+    <div id="taskList"></div>
+    <div style="font-family:system-ui;font-size:11px;color:#8a8f99;margin:14px 0 6px">生计</div>
+    <div class="taskrow" id="signRow"></div>
+    <div class="grid2" id="jobBtns">
+      <button class="btn2" data-work="escort">押镖 40两（晨）</button>
+      <button class="btn2" data-work="serve">跑堂 15两（午）</button>
+      <button class="btn2" data-work="herb">抓药 20两（晨）</button>
+      <button class="btn2" data-work="teach">代馆 30两（午）</button>
+      <button class="btn2" data-work="watch">巡夜 25两（夜）</button>
+    </div>
+    <div class="grid2" style="margin-top:7px">
+      <button class="btn2" data-work="herb" data-batch="3">抓药 ×3</button>
+      <button class="btn2" data-train="3">修炼 ×3</button>
+      <button class="btn2" data-work="serve" data-batch="3">跑堂 ×3</button>
+    </div>
+    <div id="lifeBox"></div>
+    <button class="btn dark" id="boardClose" style="margin-top:14px">收起</button>
+  </div>
+</div><div id="socialSheet" class="sheet hidden">
+  <div class="box" style="display:flex;flex-direction:column;max-height:84vh">
+    <h3 style="margin-bottom:10px">江湖社交</h3>
+    <div class="tabs2" style="margin-bottom:10px">
+      <div class="t on" id="sTabWorld">世界</div>
+      <div class="t" id="sTabFriend">好友</div>
+      <div class="t" id="sTabDm">私聊</div>
+    </div>
+    <div id="sBody" style="flex:1;overflow:auto;min-height:180px;max-height:44vh"></div>
+    <div style="display:flex;gap:7px;margin-top:10px">
+      <input id="sInput" placeholder="说点什么…" style="flex:1;padding:10px">
+      <button class="btn2" id="sSend" style="padding:10px 16px">发送</button>
+    </div>
+    <button class="btn dark" id="socialClose" style="margin-top:12px">收起</button>
+  </div>
+</div><div id="artsSheet" class="sheet hidden">
+  <div class="box"><h3>武学 · 职业 · 心法</h3>
+    <div class="tabs2" style="margin-bottom:12px">
+      <div class="t" id="tabJob">职业</div><div class="t" id="tabArt">武学</div><div class="t" id="tabMind">心法</div>
+    </div>
+    <div id="artsBody"></div>
+    <button class="btn dark" id="artsClose" style="margin-top:14px">收起</button>
+  </div>
+</div><div id="onlineSheet" class="sheet hidden">
+  <div class="box"><h3>江 湖 录</h3>
+  <div class="tabs2 grid3" id="shTabs">
+    <div class="t on" data-sh="friend">玩家好友</div><div class="t" data-sh="npc">本地 NPC</div>
+    <div class="t" data-sh="guild">帮派</div><div class="t" data-sh="rank">榜单</div>
+    <div class="t" data-sh="codex">图鉴</div>
+  </div>
+  <div id="onlineList"></div>
+  <button class="btn dark" id="onlineClose" style="margin-top:14px">收起</button></div>
+</div><div id="rankSheet" class="sheet hidden">
+  <div class="box"><h3>切磋榜</h3><div id="rankList"></div>
+  <button class="btn dark" id="rankClose" style="margin-top:14px">收起</button></div>
+</div><div id="guildSheet" class="sheet hidden">
+  <div class="box"><h3>帮派</h3><div id="guildBody"></div>
+  <button class="btn dark" id="guildClose" style="margin-top:14px">收起</button></div>
+</div>
+<div id="moreSheet" class="sheet hidden">
+  <div class="box">
+    <h3>更 多</h3>
+    <div class="pick"><b>记录</b><span>最近的江湖经历</span><button class="btn2" data-more="log">打开</button></div>
+    <div class="pick"><b>重开</b><span>保留账号，从头再来（清空进度）</span><button class="btn2" data-more="reset">重开</button></div>
+    <div class="pick"><b>退出</b><span>回到登录页</span><button class="btn2" data-more="out">退出</button></div>
+    <button class="btn dark" id="moreClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="jhSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江 湖</h3>
+    <div class="tabs2" id="jhTabs">
+      <div class="t" data-jh="task">委托</div><div class="t" data-jh="daily">日常</div>
+      <div class="t" data-jh="meet">遇见</div><div class="t" data-jh="explore">探索</div>
+      <div class="t" data-jh="pvp">竞技</div>
+    </div>
+    <div id="jhBody"></div>
+    <button class="btn dark" id="jhClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="socialHub" class="sheet hidden">
+  <div class="box">
+    <h3>亲 朋</h3>
+    <div id="shBody" style="font-family:system-ui;font-size:11px;color:#8a8f99">
+      这里集中了所有需要「跳走」的页面，平时用下方三个页签即可。
+    </div>
+    <button class="btn dark" id="shClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="talkSheet" class="sheet hidden">
+  <div class="box talkBox" id="talkBox">
+    <div class="talkHead">
+      <img id="talkArt" src="art/scene-ai.jpg" alt="">
+      <div class="talkWho"><b id="talkName">—</b><span id="talkTitle"></span></div>
+    </div>
+    <div class="talkLine" id="talkLine">……</div>
+    <div class="talkActs" id="talkActs"></div>
+    <button class="btn dark" id="talkClose" style="margin-top:12px">离开</button>
+  </div>
+</div>
+
+<div id="feedSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江 湖 动 态</h3>
+    <div id="feedList"></div>
+    <button class="btn dark" id="feedClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="codexSheet" class="sheet hidden">
+  <div class="box">
+    <h3>图 鉴</h3>
+    <div class="tabs2 grid3" id="cxTabs">
+      <div class="t" data-cx="weapon">兵器</div><div class="t" data-cx="armor">护甲</div>
+      <div class="t" data-cx="accessory">随身</div><div class="t" data-cx="art">武学</div>
+      <div class="t" data-cx="mind">心法</div>
+    </div>
+    <div id="cxBody"></div>
+    <button class="btn dark" id="cxClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="statusSheet" class="sheet hidden">
+  <div class="box">
+    <h3>人 物</h3>
+    <div class="tabs2" id="stTabs">
+      <div class="t" data-st="stat">属性</div><div class="t" data-st="gear">装备</div><div class="t" data-st="art">武学</div><div class="t" data-st="mind">心法</div><div class="t" data-st="train">修炼</div>
+    </div>
+    <div id="statusBody"></div>
+    <button class="btn dark" id="statusClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="bagSheet" class="sheet hidden">
+  <div class="box">
+    <h3>行囊</h3>
+    <div id="bagList"></div>
+    <button class="btn dark" id="bagClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="setSheet" class="sheet hidden">
+  <div class="box">
+    <h3>设 置</h3>
+    <div class="setrow"><span>音乐</span><input type="range" id="bgmVol" min="0" max="100" value="45"><b id="bgmVal">45</b></div>
+    <div class="setrow"><span>音效</span><input type="range" id="sfxVol" min="0" max="100" value="70"><b id="sfxVal">70</b></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn2" id="testSfx">试听音效</button>
+      <button class="btn2" id="testBgm">重开音乐</button>
+    </div>
+    <div class="muted" id="audioState" style="font-size:11px;margin-top:10px">点「重开音乐」可查看音频状态</div>
+    <button class="btn" id="btnInstall" style="margin-top:12px">安装到桌面</button>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn2" id="btnExport" style="flex:1;padding:11px">导出存档</button>
+      <button class="btn2" id="btnImport" style="flex:1;padding:11px">导入存档</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+    <button class="btn dark" id="setClose" style="margin-top:10px">收起</button>
+  </div>
+</div>
+
+<div id="mailSheet" class="sheet hidden">
+  <div class="box">
+    <h3>信箱 <button class="btn2" id="mailClaimAll" style="float:right">一键领取</button></h3>
+    <div id="mailList"></div>
+    <button class="btn dark" id="mailClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="afterSheet" class="sheet hidden">
+  <div class="box">
+    <h3 id="afterTitle">战果</h3>
+    <div id="afterBody" style="font-family:system-ui;font-size:13px;line-height:1.95;color:#cbbd9e"></div>
+    <button class="btn" id="afterClose" style="margin-top:16px">继 续</button>
+  </div>
+</div>
+
+<div id="injectSheet" class="sheet hidden">
+  <div class="box">
+    <h3 id="injTitle">插曲</h3>
+    <div id="injText" style="font-size:14px;line-height:1.9;color:#ddd2ba"></div>
+    <div id="injOpts" style="margin-top:14px;display:flex;flex-direction:column;gap:9px"></div>
+  </div>
+</div>
+
+<div id="worldSheet" class="sheet hidden">
+  <div class="box">
+    <h3>世界观 · 天下九洲</h3>
+    <div id="worldBody" style="font-size:13px;line-height:1.95;color:#cbbd9e"></div>
+    <button class="btn dark" id="worldClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="mapSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江湖地图 · 四派</h3>
+    <div id="mapList"></div>
+    <button class="btn dark" id="mapClose" style="margin-top:14px">收起</button>
+  </div>
+</div>
+
+<div id="logSheet" class="sheet hidden">
+  <div class="box">
+    <h3>江湖记录</h3>
+    <div id="logList"></div>
+    <button class="btn dark" id="logClose" style="margin-top:14px">合上</button>
+  </div>
+</div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+try{ window.$ = $; }catch(e){}
+let token=localStorage.getItem('wuxia_token')||'', S=null, mode='login';
+
+async function api(p,b){
+  const r=await safeFetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});
+  return r.json();
+}
+function setMode(m){
+  mode=m; const reg=m==='reg';
+  $('tabLogin').classList.toggle('on',!reg); $('tabReg').classList.toggle('on',reg);
+  $('nickBox').classList.toggle('hidden',!reg); $('p2Box').classList.toggle('hidden',!reg);
+  $('doAuth').textContent=reg?'注 册':'登 录'; $('err').textContent='';
+}
+async function doAuth(){
+  const user=$('u').value.trim().toLowerCase(), pass=$('p').value, err=$('err');
+  err.textContent='';
+  if(!/^[a-z0-9_]{3,16}$/.test(user)) return err.textContent='账号需 3-16 位字母/数字/下划线';
+  if(pass.length<6) return err.textContent='密码至少 6 位';
+  let r;
+  if(mode==='reg'){
+    if($('p2').value!==pass) return err.textContent='两次密码不一致';
+    r=await api('/api/register',{user,pass,nick:$('n').value.trim()});
+  } else r=await api('/api/login',{user,pass});
+  if(r.error) return err.textContent=r.error;
+  token=r.token; localStorage.setItem('wuxia_token',token);
+  S=r.state; showGame();
+}
+function showGame(){
+  loadFeed();
+  $('auth').classList.add('hidden'); $('game').classList.remove('hidden');
+  render();
+}
+function render(){
+  if(!S) return;
+  const a=S.me.attrs;
+  $('pname').textContent=S.me.nick; $('puid').textContent='UID '+S.me.uid;
+  $('seal').textContent=S.me.nick.slice(0,1);
+  const rows=[['hp','气血',a.hp],['ni','内力',a.neili],['wu','悟性',a.wuxing],
+              ['fa','名望',a.fame],['mo','银两',a.money],['ka','善恶',a.karma]];
+  $('stats').innerHTML=rows.map(([c,n,v])=>`<div class="st ${c} ${c==='ka'&&v<0?'neg':''}"><b>${v}</b><span>${n}</span></div>`).join('');
+  const sc=S.scene;
+  const artKey=sc.art||'scene-ai';
+  const src=(artKey==='scene-ai')?'art/scene-ai.jpg':('art/png/'+artKey+'.png');
+  // 全服公告
+  const nb=0;
+  if(nb){
+    if(S.notice && S.notice.text){ nb.classList.remove('hidden'); nb.innerHTML='<b>【江湖传闻】</b>'+S.notice.text; }
+    else nb.classList.add('hidden');
+  }
+  const tb=$('timeBar');
+  if(tb && S.phase) tb.innerHTML='<b>'+S.phase.name+'</b> · 第 '+(S.day||1)+' 天 · '+(S.hour||0)+' 时'+(S.festival?(' · 🏮 '+S.festival.name):'');
+  if($('goalBar')&&S.objective){
+    const r=S.realm||{};
+    const prog=r.nextNeed?('　'+Math.min(r.neili,r.nextNeed)+'/'+r.nextNeed):'';
+    $('goalBar').innerHTML='<span class="gobj">🎯 '+S.objective+'</span>'
+      +'<span class="rm">'+(r.name||'凡体')+(r.nextName?(' → '+r.nextName+prog):'')+'</span>';
+  }
+  if($('prealm')) $('prealm').textContent=(S.realm&&S.realm.name)||'凡体';
+  if($('ploc')) $('ploc').textContent='📍'+((S.locInfo&&S.locInfo.name)||'长安');
+  if($('vigorBar')&&S.vigor){
+    const v=S.vigor, pct=Math.round(v.now/v.max*100);
+    const mins=Math.ceil((v.nextMs||0)/60000);
+    let extra='';
+    if(v.now<v.max) extra='<span class="vigTip">+1 / '+mins+'分</span>';
+    if(v.now<10) extra+='<button class="vigBtn" id="vigMed">打坐</button>';
+    $('vigorBar').innerHTML='<span>精力</span><div class="bar"><i style="width:'+pct+'%"></i></div>'
+      +'<b>'+v.now+'/'+v.max+'</b>'+extra;
+    const mb=$('vigMed'); if(mb) mb.onclick=()=>act('meditate');
+  }
+  // 插曲
+  if(S.inject){ showInject(); } else { $('injectSheet').classList.add('hidden'); }
+  // 章节切换卡
+  if(S.chapter && lastChapter && S.chapter!==lastChapter && !S.battle){
+    showChapterCard(S.chapter);
+  }
+  if(S.chapter) lastChapter=S.chapter;
+  // 邮件红点
+  if($('mailDot')){
+    const m=S.mail||{};
+    $('mailDot').classList.toggle('hidden', !(m.unread>0 || m.canClaim>0));
+  }
+  // 战果
+  if(S.aftermath && !S.battle){
+    const af=S.aftermath;
+    if($('afterSheet').classList.contains('hidden')){
+      playSfx(af.win?'win':'break');
+      $('afterTitle').textContent=af.win?'⚔ 战 胜':'☠ 战 败';
+      $('afterBody').innerHTML=(af.win?'胜':'败')+' · 对手：'+(af.foes||[]).join('、')
+        +'<br><br>'+(af.text||'')+(af.loot&&af.loot.length?('<br><br><b style="color:#e8c46a">战利品</b><br>'+af.loot.map(x=>'· '+x).join('<br>')):'');
+      $('afterSheet').classList.remove('hidden');
+    }
+  }
+  // 战斗界面
+  const bd=S.battle;
+  if(bd){
+    $('battle').classList.remove('hidden');
+    document.body.style.overflow='hidden';
+    if($('art')) $('art').style.display='none';
+    $('choices').style.display='none'; $('actions').style.display='none';
+    $('bRound').textContent='第 '+(bd.round||1)+' 回合'+(bd.waiting?' · 该你出手':'');
+    const order=(bd.order||[]);
+    $('bOrder').innerHTML=(bd.units||[]).filter(u=>u.alive).sort((a2,b2)=>b2.spd-a2.spd).map((u,i)=>{
+      const src=u.art?('art/png/'+u.art+'.png'):null;
+      return '<div class="o '+(i===0?'now':'')+'">'+
+        (src?('<img src="'+src+'" onerror="this.style.display=\'none\'">'):('<span>'+u.name.slice(0,1)+'</span>'))+
+        '</div>';
+    }).join('');
+    const row=(id,side)=>{
+      $(id).innerHTML=(bd.units||[]).filter(u=>u.side===side).map((u,idx)=>{
+        const all=(bd.units||[]).filter(x=>x.side===u.side);
+        const si=all.indexOf(u);
+        const pct=Math.max(0,Math.round(u.hp/u.maxHp*100));
+        const src=u.art?('art/png/'+u.art+'.png'):null;
+        const sel=(side==='foe'&&window.__target===si);
+        return '<div class="bu '+side+' '+(u.alive?'':'dead')+' '+(sel?'sel':'')+'" data-tgt="'+si+'" data-side="'+side+'">'+
+          '<div class="av">'+(src?('<img src="'+src+'" onerror="this.style.display=\'none\'">'):'')+
+          '<div class="ph">'+u.name.slice(0,1)+'</div></div>'+
+          '<div class="nm">'+u.name+'</div>'+
+          '<div class="hpn">'+u.hp+' / '+u.maxHp+'</div>'+
+          '<div class="hpbar"><i style="width:'+pct+'%"></i></div></div>';
+      }).join('');
+    };
+    row('foeRow','foe'); row('allyRow','ally');
+    $('bLog').innerHTML=(bd.log||[]).slice(-6).map(t=>'<div>'+t+'</div>').join('');
+    if($('mvSkill')){
+      const ar=(S.arts||[]).find(x=>x.key===S.artKey);
+      $('mvSkill').innerHTML='<b>'+(ar?ar.name.slice(0,4):'武学')+'</b><small>'+(ar?('耗内力 '+ar.cost):'耗内力')+'</small>';
+    }
+    const canFlee=bd.canFlee!==false;
+    const fb=document.querySelector('[data-move="flee"]'); if(fb){ fb.disabled=!canFlee; fb.style.opacity=canFlee?1:.35; }
+  } else {
+    $('battle').classList.add('hidden');
+    document.body.style.overflow='';
+    if($('art')) $('art').style.display='';
+    $('choices').style.display=''; $('actions').style.display='';
+  }
+  $('art').src=src;
+  $('art').onerror=function(){this.onerror=null;this.src='art/scene-ai.jpg';};
+  $('artCap').textContent=sc.title||'';
+  $('stTitle').textContent=sc.title||'';
+  const sceneEl=$('stText').closest('.scene');
+  const chEl=$('choices');
+  sceneEl.classList.add('swapping'); if(chEl) chEl.classList.add('swapping');
+  setTimeout(()=>{
+    typewriter((sc.text||[]).map(t=>'<p>'+t+'</p>').join(''));
+    sceneEl.classList.remove('swapping');
+    if(chEl) chEl.classList.remove('swapping');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }, 90);
+  if(sc.ending){
+    $('choices').innerHTML='';
+    $('endingBox').innerHTML=`<div class="ending"><div class="t">终 章</div>
+      <p>此局已了。你的江湖，记在记录里。</p>
+      <button class="btn" id="againBtn">重 入 江 湖</button></div>`;
+    const b=$('againBtn'); if(b) b.onclick=()=>act('restart');
+    return;
+  }
+  $('endingBox').innerHTML='';
+  const frozenTip = S.frozen ? '<div class="frozenTip">你的命数被封住了，暂时无法做出选择。</div>' : '';
+  $('choices').innerHTML=frozenTip+(sc.choices||[]).map(c=>`<button class="ch" data-i="${c.i}" ${S.frozen?'disabled style="opacity:.4"':''}>${c.text}</button>`).join('')
+    + ((sc.locked&&sc.locked.length)? sc.locked.map(c=>`<div class="ch" style="opacity:.38;filter:grayscale(.6)">${c.text}<small>条件不足</small></div>`).join('') : '');
+  if(S.me.items.length){
+    $('stText').innerHTML+='<p style="font-size:11.5px;color:#8f8676;font-family:system-ui">携带：'+S.me.items.join('、')+'</p>';
+  }
+
+}
+let artTab='job';
+function renderArts(){
+  const cur=S.job, curArt=S.artKey, curMind=S.mind;
+  let html='';
+  if(artTab==='job'){
+    html=(S.jobs||[]).map(j=>`<div class="pick ${cur===j.key?'on':''}"><b>${j.name}${cur===j.key?' · 当前':''}</b>
+      <span>${j.desc}｜攻 ×${j.atk} 血 ×${j.hp}</span>
+      <button class="btn2" data-job="${j.key}">${cur===j.key?'已选':'选择'}</button></div>`).join('');
+  } else if(artTab==='art'){
+    const list=S.arts||[];
+    html=list.length? list.map(a=>`<div class="pick ${curArt===a.key?'on':''}"><b>${a.name}${curArt===a.key?' · 使用中':''}</b>
+      <span>${a.desc}｜倍率 ×${a.mult} · 耗内力 ${a.cost}</span>
+      <button class="btn2" data-art="${a.key}">${curArt===a.key?'已装备':'装备'}</button></div>`).join('')
+      :'<div class="pick"><b>尚未习得其他武学</b><span>去学剑、学毒、投门派，才能解锁更多招式</span></div>';
+    html+='<div style="font-size:10.5px;color:#7f8b99;margin-top:6px;font-family:system-ui">未解锁的武学需要对应秘籍或门派传承</div>';
+  } else {
+    html=(S.minds||[]).map(m=>`<div class="pick ${curMind===m.key?'on':''}"><b>${m.name}${curMind===m.key?' · 修习中':''}</b>
+      <span>${m.desc}｜气血上限 ${m.hpMax>0?'+':''}${m.hpMax} · 攻 ×${m.atk}</span>
+      <button class="btn2" data-mind="${m.key}">${curMind===m.key?'已修习':'修习'}</button></div>`).join('');
+  }
+  $('artsBody').innerHTML=html;
+  $('tabJob').classList.toggle('on',artTab==='job');
+  $('tabArt').classList.toggle('on',artTab==='art');
+  $('tabMind').classList.toggle('on',artTab==='mind');
+}
+async function openRank(){
+  const list=await (await fetch('/api/rank')).json();
+  const se=S.season||{};
+  let html='<div class="pick" style="margin-bottom:10px"><b>本周赛季 '+(se.week||'')+'</b>'
+    +'<span>周榜前三奖励：300 / 180 / 100 两 + 名望</span>'
+    +'<span>我的积分：'+(se.mine||0)+'</span></div>';
+  html+=(se.board&&se.board.length)? se.board.map(x=>`<div class="jrow" style="display:flex;gap:8px">
+      <b style="width:20px;color:#ffd479">${x.rank}</b><div style="flex:1">${x.nick}</div>
+      <b style="color:#e8c46a">${x.points}</b></div>`).join('')
+    : '<div class="jrow">本周还没有人切磋</div>';
+  html+='<div class="jrow" style="border:0;color:#8a8f99;margin-top:10px">总榜</div>';
+  html+=list.length? list.map((o,i)=>`<div class="jrow" style="display:flex;align-items:center;gap:8px">
+      <b style="width:22px;color:${i<3?'#ffd479':'#8a8f99'}">${i+1}</b>
+      <div style="flex:1"><b style="color:#f0dfb8">${o.nick}</b>
+        <div style="font-size:10.5px;color:#8a8f99">${o.job} · ${o.place} · ${o.pvp.wins}胜 ${o.pvp.losses}负</div></div>
+      <b style="color:#e8c46a">${o.pvp.points}</b></div>`).join('')
+    : '<div class="jrow">还没有人切磋过</div>';
+  $('rankList').innerHTML=html;
+  $('rankSheet').classList.remove('hidden');
+}
+let __cxTab='weapon';
+function openCodex(tab){
+  __cxTab = tab || __cxTab || 'weapon';
+  const cd=(S.codexData||{gear:[],arts:[],minds:[]});
+  $('cxTabs').querySelectorAll('.t').forEach(t=>t.classList.toggle('on', t.dataset.cx===__cxTab));
+  let list=[];
+  if(__cxTab==='weapon'||__cxTab==='armor'||__cxTab==='accessory')
+    list=cd.gear.filter(g=>g.slot===__cxTab).map(g=>({k:g.key,n:g.name,d:'攻 +'+g.atk+(g.hp?' · 血 +'+g.hp:''),o:g.owned}));
+  else if(__cxTab==='art') list=cd.arts.map(a=>({k:a.key,n:a.name,d:a.desc,o:a.owned}));
+  else list=cd.minds.map(m=>({k:m.key,n:m.name,d:m.desc,o:m.owned}));
+  const total=list.length, got=list.filter(x=>x.o).length;
+  $('cxBody').innerHTML='<div class="stTip" style="margin-bottom:8px">已收集 '+got+' / '+total+'</div>'
+    + '<div class="cxGrid">' + list.map(x=>`
+      <div class="cxCard ${x.k.indexOf('cx_art_')===0?'art':''} ${x.k.indexOf('cx_mind_')===0?'mind':''} ${x.o?'':'lock'}">
+        <img src="art/png/${x.k}.png?v=3" onerror="this.src='art/scene-ai.jpg'">
+        <b>${x.n}</b><span>${x.o?(x.d||''):'未获得'}</span>
+      </div>`).join('') + '</div>';
+  $('codexSheet').classList.remove('hidden');
+}
+async function openOnline(mode){
+  const m = mode || 'player';
+  let html='';
+  if(m==='friend'){
+    const list=await (await fetch('/api/online?token='+token)).json();
+    const friends=await (await fetch('/api/friends?token='+token)).json();
+    const others=list.filter(o=>o.nick!==(S.me&&S.me.nick));
+    let onlineHtml = others.length ? others.map(o=>`<div class="pick"><b>${o.nick}</b>
+        <span>${o.scene||''} · ${o.job||''} · 内力 ${o.neili||0} · 名望 ${o.fame||0}</span>
+        <button class="btn2" data-chat="${o.uid}">私聊</button>
+        <button class="btn2" data-friend="${o.uid}">加好友</button></div>`).join('')
+      : '<div class="stTip">此刻没有其他玩家在线</div>';
+    let friendHtml = (friends&&friends.length) ? friends.map(f=>`<div class="pick"><b>${f.nick}<span style="font-family:system-ui;font-size:10px;color:#8b8471"> ${f.online?'· 在线':'· 离线'}</span></b>
+        <span>${f.place||''} · ${f.scene||''}</span>
+        <button class="btn2" data-dm="${f.uid}">私聊</button>
+        <button class="btn2" data-invite="${f.uid}">组队</button></div>`).join('')
+      : '<div class="stTip">还没有好友，去「在线玩家」加一个</div>';
+    html = '<div class="stSec">我的好友（'+((friends&&friends.length)||0)+'）</div>' + friendHtml
+         + '<div class="stSec">在线玩家（'+others.length+'）</div>' + onlineHtml;
+  } else {
+    const npcsHere=(S.npcsHere||[]);
+    html = npcsHere.length ? npcsHere.map(n=>`<div class="pick" style="display:flex;gap:9px;align-items:center">
+        ${n.art?`<img src="art/png/${n.art}.png" onerror="this.style.display='none'"
+          style="width:42px;height:42px;border-radius:10px;object-fit:cover;object-position:50% 20%;
+          border:1px solid #3b3527;flex:0 0 auto">`:''}
+        <div style="flex:1;min-width:0"><b>${n.name} <span style="font-family:system-ui;font-size:10px;color:#8b8471">${n.title||''} · ${n.trait||''}</span></b>
+        <span>${n.purpose||''} · 见你 ${n.met||0} 次 · 交情 ${(S.npcRel&&S.npcRel[n.id])||0}</span>
+        <div style="margin-top:6px">
+          <button class="btn2" data-talk="${n.id}">交谈</button>
+          <button class="btn2" data-lore="${n.id}">听过去</button>
+          <button class="btn2" data-quest="${n.id}">委托</button>
+          <button class="btn2" data-hit="${n.id}">动手</button>
+        </div></div></div>`).join('')
+      : '<div class="stTip">此处没有别的江湖人</div>';
+  }
+  $('onlineList').innerHTML=html;
+  $('onlineSheet').classList.remove('hidden');
+}
+function openBoard(){
+  const cx=S.codex||{npcs:[],scenes:[],items:[]};
+  const sg=S.sign||{};
+  if($('signRow')) $('signRow').innerHTML=`<div class="n">签到
+      <div class="pg">连续 ${sg.streak||0} 天${sg.canSign?' · 今日可签':' · 今日已签'}</div></div>
+      ${sg.canSign?'<button class="btn2" data-sign="1">签到</button>':'<span class="pg">明天再来</span>'}`;
+  const cx0=S.codex||{npcs:[],scenes:[],items:[]};
+  const ms=[[ 'npcs','人物',[5,10,20] ],['scenes','场景',[20,50,90]],['items','书册',[3,6,10]]];
+  const claimHtml=ms.map(([k,nm,need])=>need.map((nd,i)=>{
+    if((cx0[k]||[]).length<nd) return '';
+    const done=(S.codexClaimed||{})[k+i];
+    return done?'':`<button class="btn2" data-claimcx="${k}:${i}">领${nm}奖励(${nd})</button>`;
+  }).join('')).join('');
+  $('lifeBox').innerHTML=`
+    <div style="font-family:system-ui;font-size:11px;color:#8a8f99;margin:14px 0 6px">身世</div>
+    <div class="taskrow"><div class="n">${S.originName||'未定'} · ${S.growthName||'未定'}
+      <div class="pg">${S.growth==='martial'?'攻击 +12%':S.growth==='healer'?'疗伤 +37%':S.growth==='merchant'?'打工收入 +20%':S.growth==='literati'?'悟性见长':'市井门路多'}</div></div>
+    <div style="font-size:11px;color:#8a8f99;margin:14px 0 6px;font-family:system-ui">安家（${S.festival?S.festival.name:''}）</div>
+    <div class="taskrow"><div class="n">${H.owned?('小院 · '+H.level+'进'):'尚无宅子'}
+      <div class="pg">${H.owned?'可休息回血、收房租':'500 两买一处小院'}</div></div>
+      ${H.owned?`<button class="btn2" data-life="rest">歇息</button>
+        <button class="btn2" data-life="up">扩建 ${300*H.level}两</button>`
+        :'<button class="btn2" data-life="buyhome">买宅 500两</button>'}</div>
+    <div class="taskrow"><div class="n">坐骑：${S.mount?S.mount.name:'无'}
+      <div class="pg">赶路与打工省时</div></div>
+      ${S.mount?'':'<button class="btn2" data-life="mount">买马 300两</button>'}</div>
+    <div class="taskrow"><div class="n">门派：${S.sectRankName||'未入门'} · 贡献 ${S.sectExp||0}
+      <div class="pg">${rk<3?('下一次晋阶 '+(need[rk+1]-S.sectExp)+' 贡献'):(rk===3?'已是长老':'已是掌门')}</div></div>
+      <button class="btn2" data-life="secttask">接差事</button>
+      ${S.sectCanChallenge?'<button class="btn2" data-life="sectchallenge">挑战掌门</button>':''}</div>
+    <div class="taskrow"><div class="n">传承 · 第 ${S.legacy||0} 世
+      <div class="pg">永久加成 +${S.legacyBonus||0}（气血/内力/悟性/攻击）</div></div>
+      ${S.canReincarnate?'<button class="btn2" data-life="reincarnate">转 世</button>':'<span class="pg">归一境可转世</span>'}</div>
+    <div style="font-family:system-ui;font-size:11px;color:#8a8f99;margin:14px 0 6px">江湖大势（全服）</div>
+    <div class="taskrow"><div class="n">${S.tide.a} ${S.tide.aPts}%  vs  ${S.tide.b} ${S.tide.bPts}%
+      <div class="pg">${S.tide.mine?('你支持了 '+(S.tide.mine==='a'?S.tide.a:S.tide.b)):'每天可投票，20两一次'}</div></div>
+      <button class="btn2" data-tide="a">支持前者</button>
+      <button class="btn2" data-tide="b">支持后者</button></div>
+    <div class="taskrow"><div class="n">图鉴
+      <div class="pg">人物 ${cx.npcs.length} · 场景 ${cx.scenes.length} · 书册 ${cx.items.length}</div></div>
+      <button class="btn2" data-life="codex">买书 30两</button></div>
+    ${claimHtml?('<div class="taskrow"><div class="n">图鉴奖励<div class="pg">达成里程碑可领</div></div></div><div style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 0">'+claimHtml+'</div>'):''}
+  `;
+  $('boardSheet').classList.remove('hidden');
+}
+let socialTab='world', socialTo=null, socialTimer=null, lastChatAt=0;
+function renderSocial(){
+  $('sTabWorld').classList.toggle('on',socialTab==='world');
+  $('sTabFriend').classList.toggle('on',socialTab==='friend');
+  $('sTabDm').classList.toggle('on',socialTab==='dm');
+  if(socialTab==='friend'){
+    fetch('/api/friends?token='+token).then(r=>r.json()).then(list=>{
+      let html=list.length? list.map(f=>`<div class="pick"><b>${f.nick} ${f.online?'· 在线':'· 离线'}</b>
+        <span>${f.place} · ${f.scene}</span>
+        <button class="btn2" data-dm="${f.uid}">私聊</button>
+        <button class="btn2" data-invite="${f.uid}">组队</button>
+        <button class="btn2" data-unfriend2="${f.uid}">删除</button></div>`).join('')
+        :'<div class="jrow">还没有好友。输入对方 UID 或昵称添加。</div>';
+      const pt=S.party;
+      if(pt&&pt.members){
+        html+=`<div class="pick on"><b>队伍</b><span>${pt.members.map(m=>m.nick+(m.me?'（你）':'')+(m.online?'':'(离线)')).join(' · ')}</span>
+          <button class="btn2" data-party="leave">离开</button></div>`;
+      } else if(pt&&pt.pending){
+        html+=`<div class="pick"><b>待接受的组队邀请</b><button class="btn2" data-party="accept">接受</button></div>`;
+      }
+      html+=`<div style="display:flex;gap:7px;margin-top:10px">
+        <input id="fKey" placeholder="对方 UID 或昵称" style="flex:1;padding:10px">
+        <button class="btn2" data-addfriend="1" style="padding:10px 14px">加好友</button></div>
+        <div class="jrow" style="border:0;color:#7d8794;margin-top:8px">你的 UID：<b style="color:#d8c9a8">${S.me_uid||''}</b></div>`;
+      $('sBody').innerHTML=html;
+    });
+    return;
+  }
+  loadChat(true);
+}
+async function loadChat(reset){
+  if(reset){ lastChatAt=0; $('sBody').innerHTML='<div class="jrow">加载中…</div>'; }
+  const q = socialTab==='dm' && socialTo ? ('&to='+socialTo) : '';
+  const r = await (await fetch('/api/chat?token='+token+'&since='+lastChatAt+q)).json();
+  if(r.error){ $('sBody').innerHTML='<div class="jrow">'+r.error+'</div>'; return; }
+  if(reset) $('sBody').innerHTML='';
+  if(reset && socialTab==='dm' && !socialTo){
+    $('sBody').innerHTML='<div class="jrow">先在「好友」里选一个人私聊</div>'; return;
+  }
+  ((r&&r.msgs)||[]).forEach(m=>{
+    const me = m.uid===S.me_uid;
+    $('sBody').insertAdjacentHTML('beforeend',
+      `<div class="msg ${me?'me':''}"><div class="av">${m.from.slice(0,1)}</div>
+        <div class="bd"><div class="who">${m.from}${me?'（你）':''}</div><div class="tx">${m.text}</div></div></div>`);
+  });
+  if(((r&&r.msgs)||[]).length){ $('sBody').scrollTop=$('sBody').scrollHeight; }
+  lastChatAt = r.now || lastChatAt;
+}
+async function sendChat(){
+  const t=$('sInput').value.trim(); if(!t) return;
+  const body={token,type:'chat',text:t};
+  if(socialTab==='dm' && socialTo) body.to=socialTo;
+  const r=await api('/api/action',body);
+  if(r.error){ alert(r.error); return; }
+  $('sInput').value='';
+  loadChat(false);
+}
+function openMail(){
+  const list=(S.mail&&S.mail.list)||[];
+  $('mailList').innerHTML=list.length? list.map(m=>{
+    const hasAtt=(m.money||(m.items&&m.items.length));
+    return `<div class="pick ${m.read?'':'on'}">
+      <b>${m.subject}${m.read?'':' · 未读'}</b>
+      <span>${m.from} · ${hasAtt?([m.money?('银两 '+m.money):''].concat(m.items||[]).filter(Boolean).join('｜')):'无附件'}</span>
+      <span style="color:#a99a7e">${m.body||''}</span>
+      ${hasAtt? (m.claimed?'<span style="color:#6f6858">附件已领</span>':'<button class="btn2" data-claimmail="'+m.id+'">领取附件</button>'):''}
+    </div>`;
+  }).join(''):'<div class="jrow">信箱是空的</div>';
+  $('mailSheet').classList.remove('hidden');
+  act('mailRead',{all:true});
+}
+async function openSocial(tab){
+  socialTab=tab||'world';
+  $('socialSheet').classList.remove('hidden');
+  renderSocial();
+  clearInterval(socialTimer);
+  socialTimer=setInterval(()=>{ if($('socialSheet').classList.contains('hidden')){clearInterval(socialTimer);return;} if(socialTab!=='friend') loadChat(false); }, 4000);
+}
+async function openGuild(){
+  const list=await (await fetch('/api/guilds')).json();
+  const g=S.guild;
+  let html='';
+  if(g){
+    html+=`<div class="pick on"><b>${g.name} · ${g.level}级</b>
+      <span>帮主 ${g.founder} · ${g.members} 人 · 经验 ${g.exp}/${g.level*300}</span>
+      <span>${g.notice}</span>
+      <button class="btn2" data-guild="donate">捐 50 两</button>
+      <button class="btn2" data-guild="leave">退出帮派</button></div>`;
+  } else {
+    html+=`<div class="pick"><b>创立帮派</b><span>花费 200 两，成为一帮之主</span>
+      <button class="btn2" data-guild="create">立 帮</button></div>`;
+  }
+  html+='<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">江湖帮派</div>';
+  html+=list.length? list.map(x=>`<div class="pick"><b>${x.name} · ${x.level}级</b>
+    <span>帮主 ${x.founder} · ${x.members} 人</span>
+    ${g?'':'<button class="btn2" data-join="'+x.id+'">加入</button>'}</div>`).join('')
+    :'<div class="pick"><span>还没有帮派，你可以做第一个</span></div>';
+  $('guildBody').innerHTML=html;
+  $('guildSheet').classList.remove('hidden');
+}
+function openStatus(tab){
+  const m=S.me||{}, a=m.attrs||{}, g=S.gear||{}, gb=S.gearBag||[], lv=S.gearLv||{};
+  const slotName={weapon:'兵器',armor:'护甲',accessory:'随身'};
+  const e=(k)=>g[k];
+  let html='';
+  html+='<div class="stHead"><div class="stSeal">'+(m.nick||'侠').slice(0,1)+'</div>'
+    +'<div><div class="stName">'+(m.nick||'无名侠客')+'</div>'
+    +'<div class="stSub">UID '+(m.uid||'—')+' · '+(S.realm?S.realm.name:'凡体')+' · '
+    +((S.jobName)||'江湖人')+'</div></div></div>';
+  // 属性
+  html+='<div class="stGrid">'
+    +'<div><i>气血</i><b>'+a.hp+'</b></div><div><i>内力</i><b>'+a.neili+'</b></div>'
+    +'<div><i>悟性</i><b>'+a.wuxing+'</b></div><div><i>名望</i><b>'+a.fame+'</b></div>'
+    +'<div><i>银两</i><b>'+a.money+'</b></div><div><i>善恶</i><b>'+a.karma+'</b></div>'
+    +'</div>';
+  if(S.realm){ html+='<div class="stBar"><i style="width:'+Math.min(100,Math.round(S.realm.pct||0))+'%"></i></div>'
+    +'<div class="stTip">下一境：'+S.realm.nextName+'（'+S.realm.neili+'/'+S.realm.nextNeed+'）</div>'; }
+  // 装备
+  html+='<div class="stSec">装 备</div>';
+  ['weapon','armor','accessory'].forEach(k=>{
+    const it=e(k);
+    html+='<div class="stItem"><b>'+slotName[k]+'</b><span>'+(it?it.name+'（攻+'+it.atk+' 血+'+it.hp+'）':'空')+'</span>'
+      +(it?'<em class="lv">+'+(lv[k]||0)+'</em>':'')
+      +(it?'<button class="btn2" data-enh="'+k+'">强化</button>':'')
+      +'<button class="btn2" data-pick="'+k+'">'+(it?'换装':'装备')+'</button></div>';
+    if(window.__pickSlot===k){
+      const opts=gb.map((x,i)=>x.slot===k?`<div class="pick"><b>${x.name}</b><span>攻+${x.atk} 血+${x.hp}</span><button class="btn2" data-eq="${i}">装上</button></div>`:'').join('');
+      html+=opts||'<div class="stTip">这个部位没有可换的</div>';
+    }
+  });
+  // 心法
+  html+='<div class="stSec">心 法</div>';
+  (S.minds||[]).forEach(x=>{ html+='<div class="pick '+(x.on?'on':'')+'"><b>'+x.name+(x.on?' · 修习中':'')+'</b><span>'+(x.desc||'')+'</span>'
+    +(x.on?'':'<button class="btn2" data-mind="'+x.key+'">修习</button>')+'</div>'; });
+  // 武学
+  html+='<div class="stSec">武 学</div>';
+  (S.arts||[]).forEach(x=>{ html+='<div class="pick '+(x.on?'on':'')+'"><b>'+x.name+(x.on?' · 使用中':'')+'</b><span>'+(x.desc||'')+'</span>'
+    +(x.on?'':'<button class="btn2" data-art="'+x.key+'">改用</button>')+'</div>'; });
+  // 职业
+  html+='<div class="stSec">职 业</div>';
+  (S.jobs||[]).forEach(x=>{ html+='<div class="pick '+(x.on?'on':'')+'"><b>'+x.name+(x.on?' · 当前':'')+'</b><span>'+(x.desc||'')+'</span>'
+    +(x.on?'':'<button class="btn2" data-job="'+x.key+'">转职</button>')+'</div>'; });
+
+  const T=tab||window.__stTab||'stat';
+  window.__stTab=T;
+  // 页签过滤：只保留对应区块
+  const keep={stat:['stHead','stGrid','stBar','stSecP'],gear:['gear'],art:['arts'],mind:['minds'],train:['train']}[T]||['stat'];
+  if(T==='gear'){ html=html.replace(/<div class="stHead">[\s\S]*?<div class="stSec">装 备<\/div>/,'<div class="stSec">装 备</div>'); }
+  if(T==='art'){ html=html.replace(/<div class="stHead">[\s\S]*?<div class="stSec">武 学<\/div>/,'<div class="stSec">武 学</div>'); }
+  if(T==='mind'){ html=html.replace(/<div class="stHead">[\s\S]*?<div class="stSec">心 法<\/div>/,'<div class="stSec">心 法</div>'); }
+  if(T==='train'){
+    const gb=S.gearBonus||{};
+    const power=Math.round((gb.atk||0)*8 + (S.me.attrs.neili||0)*1.3 + (S.me.attrs.hp||0)*0.6 + (S.me.attrs.wuxing||0)*3);
+    const ch=(String(S.chapter||'').match(/[一二三四五六七八九十]+/)||['一'])[0];
+    const cn={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'十一':11,'十二':12,'十三':13,'十四':14,'十五':15,'十六':16,'十七':17,'十八':18}[ch]||1;
+    const rec=cn*140+200;
+    html='<div class="stHead"><div class="stSeal">⚔</div><div><div class="stName">战力 '+power+'</div>'
+      +'<div class="stSub">当前章节建议战力 '+rec+(power<rec?' · ⚠ 偏低，先打造/强化装备或提升内力':' · 达标')+'</div></div></div>'
+      +'<div class="stSec">修 炼</div>'
+      +'<div class="pick"><b>原地打坐</b><span>静坐一夜，内力提升（城镇无效）</span><button class="btn2" data-str="train">打坐</button></div>'
+      +'<div class="pick"><b>连续打坐 ×3</b><span>一次坐三回，气血不足会自动停</span><button class="btn2" data-str="train3">修炼 ×3</button></div>'
+      +'<div class="pick"><b>客栈歇息</b><span>花银两补精力</span><button class="btn2" data-str="meditate">歇息</button></div>'
+      +'<div class="pick"><b>聚气丹</b><span>内力 +12、精力 +15（40 两）</span><button class="btn2" data-str="pill">服用</button></div>';
+  }
+  $('statusBody').innerHTML=html;
+  setTab($('stTabs'),'st');
+  $('statusSheet').classList.remove('hidden');
+}
+
+/* ===== 合并模块：人物 / 江湖 / 亲朋 ===== */
+window.__stTab='stat'; window.__jhTab='task'; window.__shTab='friend';
+function setTab(el,sel){ el.querySelectorAll('.t').forEach(t=>t.classList.toggle('on', t.dataset[sel]===window['__'+sel])); }
+
+let __feed=[], __feedIdx=0, __notice='';
+async function loadFeed(){
+  try{
+    const f=await (await fetch('/api/feed')).json();
+    __notice=f.notice||''; __feed=(f.feed||[]).slice();
+    if(f.daily){ __feed.unshift({ type:'daily', text:'今日江湖 · '+f.daily }); }
+    if(__notice){ $('feedText').textContent='📢 '+__notice; }
+    else if(__feed.length){ $('feedText').textContent=__feed[0].text; }
+    else $('feedText').textContent='江湖风平浪静';
+  }catch(e){}
+}
+function openFeed(){
+  loadFeed().then(()=>{
+    let html='';
+    if(__notice) html+='<div class="feedItem"><b>公告</b>'+__notice+'</div>';
+    html+=__feed.length? __feed.map(x=>`<div class="feedItem"><b>${{realm:'突破',battle:'交手',gm:'天机',news:'江湖',daily:'今日'}[x.type]||'动态'}</b>${x.text}</div>`).join('')
+      : '<div class="stTip">暂无动态</div>';
+    $('feedList').innerHTML=html;
+    $('feedSheet').classList.remove('hidden');
+  });
+}
+setInterval(()=>{ if(token) loadFeed(); }, 20000);
+setInterval(()=>{
+  if(__notice||!__feed.length) return;
+  __feedIdx=(__feedIdx+1)%Math.min(6,__feed.length);
+  $('feedText').textContent=__feed[__feedIdx].text;
+}, 6000);
+
+function openJianghu(tab){
+  window.__jhTab=tab||window.__jhTab||'task';
+  setTab($('jhTabs'),'jh');
+  const t=window.__jhTab;
+  let html='';
+  if(t==='task'){
+    const tasks=(S.tasks||[]);
+    html=tasks.length?tasks.map(x=>`<div class="pick"><b>${x.name}</b>
+      <span>进度 ${Math.min(x.progress,x.goal)}/${x.goal}${x.claimed?' · 已领':''}</span>
+      ${x.claimed?'':(x.progress>=x.goal
+        ? `<button class="btn2" data-claim="${x.id}">领取</button>`
+        : '<span style="color:#6f6858">未完成</span>')}</div>`).join('')
+      :'<div class="stTip">今日委托已领完，明天再来</div>';
+  } else if(t==='daily'){
+    html=`<div class="pick"><b>日常</b><span>茶馆听书、酒楼喝一碗、赌坊、河边、集市……</span>
+      <button class="btn2" data-jhdaily="1">去逛逛</button></div>`;
+  } else if(t==='meet'){
+    html=`<div class="pick"><b>遇见</b><span>在这地方转转，看会碰上谁</span>
+      <button class="btn2" data-jhmeet="1">遇见</button></div>`;
+  } else if(t==='explore'){
+    html=`<div class="pick"><b>探索</b><span>在附近搜一搜，可能捡到东西，也可能遇敌</span>
+      <button class="btn2" data-jhexplore="1">探索</button><button class="btn2" data-jhfight="1">打怪</button></div>`;
+  } else if(t==='pvp'){
+    const p=S.pvp||{wins:0,losses:0,points:100};
+    html=`<div class="pick"><b>竞技场</b><span>胜 ${p.wins} · 负 ${p.losses} · 积分 ${p.points}</span>
+      <button class="btn2" data-jhpvp="1">上擂台</button></div>`;
+  }
+  $('jhBody').innerHTML=html;
+  $('jhSheet').classList.remove('hidden');
+}
+function openSocialHub(tab){
+  window.__shTab=tab||window.__shTab||'player';
+  setTab($('shTabs'),'sh');
+  $('socialHub').classList.add('hidden');
+  const t=window.__shTab;
+  if(t==='friend') return openOnline('friend');
+  if(t==='npc') return openOnline('npc');
+  if(t==='codex') return openCodex();
+  if(t==='social') return openSocial();
+  if(t==='guild') return openGuild();
+  if(t==='rank') return openRank();
+  if(t==='codex') return openCodex();
+}
+
+function openBag(){
+  const items=(S.me.items||[]);
+  const gear=S.gear||{}, bag=S.gearBag||[];
+  const slotName={weapon:'兵器',armor:'护甲',accessory:'随身'};
+  let html='<div style="font-size:11px;color:#8a8f99;margin-bottom:6px;font-family:system-ui">已装备</div>';
+  html+=['weapon','armor','accessory'].map(k=>{
+    const g=gear[k];
+    return `<div class="jrow">${slotName[k]}：${g?(g.name+'（攻+'+g.atk+' 血+'+g.hp+'）'):'空'}</div>`;
+  }).join('');
+  html+=`<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">打造（60 两）</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn2" data-forge="weapon" style="flex:1">兵器</button>
+      <button class="btn2" data-forge="armor" style="flex:1">护甲</button>
+      <button class="btn2" data-forge="accessory" style="flex:1">随身</button>
+    </div>
+    <div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">装备背包</div>`;
+  html+=bag.length? bag.map((g,i)=>`<div class="jrow" style="display:flex;align-items:center;gap:8px">
+    <div style="flex:1">${g.name} <span style="color:#8a8f99;font-size:10.5px">攻+${g.atk} 血+${g.hp}</span></div>
+    <button class="btn2" data-equip="${i}">装备</button>
+    <button class="btn2" data-sell="${i}">卖</button></div>`).join('')
+    :'<div class="jrow" style="color:#8a8f99">没有多余装备</div>';
+  html+=`<div style="font-size:11px;color:#8a8f99;margin:10px 0 6px;font-family:system-ui">物品</div>`;
+  html+=items.length? items.map(it=>`<div class="jrow">◈ ${it}</div>`).join('') :'<div class="jrow" style="color:#8a8f99">行囊空空</div>';
+  $('bagList').innerHTML=html;
+  $('bagSheet').classList.remove('hidden');
+}
+function showInject(){
+  const ins=S.inject; if(!ins) return;
+  $('injTitle').textContent=ins.title||'插曲';
+  $('injText').innerHTML=(ins.text||[]).map(t=>'<p>'+t+'</p>').join('');
+  $('injOpts').innerHTML=(ins.options||[]).map((o,i)=>`<button class="ch" data-inj="${i}">${o.text}</button>`).join('');
+  $('injectSheet').classList.remove('hidden');
+}
+function showOffline(on){ const el=document.getElementById('offlineBar'); if(el) el.style.display=on?'block':'none'; }
+async function safeFetch(p,opt){
+  try{ const r=await fetch(p,opt); showOffline(false); return r; }
+  catch(e){ showOffline(true); throw e; }
+}
+async function act(type,extra){
+  const r=await api('/api/action',Object.assign({token,type},extra||{}));
+  if(r.error){ toastMsg(r.error); return r; }
+  if(r.state){ S=r.state; render(); }
+  return r;   // 重要：返回响应，供调用方读取 msgs
+}
+document.addEventListener('click',(e)=>{
+  const tu=e.target.closest('.bu[data-side="foe"]');
+  if(tu){ window.__target=Number(tu.dataset.tgt);
+    document.querySelectorAll('.bu').forEach(x=>x.classList.remove('sel'));
+    tu.classList.add('sel'); return; }
+  const mv=e.target.closest('[data-move]');
+  if(mv){ return act('battle',{move:mv.dataset.move, target:window.__target||0}); }
+  const ac=e.target.closest('[data-act]');
+  if(ac){
+    const t=ac.dataset.act;
+    if(t==='bag') return openBag();
+    if(t==='me') return openStatus(window.__stTab);
+    if(t==='jianghu') return openJianghu(window.__jhTab);
+    if(t==='socialhub') return openSocialHub(window.__shTab);
+    if(t==='arts'){ artTab='job'; renderArts(); $('artsSheet').classList.remove('hidden'); return; }
+    if(t==='rank') return openRank();
+    if(t==='guild') return openGuild();
+    if(t==='daily') return act('toDaily');
+    if(t==='board') return openBoard();
+    if(t==='social') return openSocial('world');
+    if(t==='mail') return openMail();
+    if(t==='settings') return openSettings();
+    if(t==='fight') return act('explore');
+    return act(t);
+  }
+  const inj=e.target.closest('[data-inj]');
+  if(inj){ $('injectSheet').classList.add('hidden'); return act('choose',{idx:Number(inj.dataset.inj)}); }
+  const c=e.target.closest('[data-i]');
+  if(c){
+    if(twBusy){ finishTyping(); return; }
+    const now=Date.now();
+    if(window.__lastChoose && now-window.__lastChoose<600) return;
+    if(+c.dataset.cool>Date.now()) return;
+    window.__lastChoose=now;
+    return act('choose',{idx:Number(c.dataset.i)});
+  }
+});
+$('tabLogin').onclick=()=>setMode('login');
+$('tabReg').onclick=()=>setMode('reg');
+$('doAuth').onclick=doAuth;
+$('btnLog').onclick=()=>{
+  $('logList').innerHTML=(S.log||[]).slice().reverse().map(t=>`<div class="jrow">${t}</div>`).join('')||'<div class="jrow">尚无记录</div>';
+  $('logSheet').classList.remove('hidden');
+};
+$('logClose').onclick=()=>$('logSheet').classList.add('hidden');
+const SECTS=[
+ {k:'w_sect_shaolin',n:'少林',d:'天下武学正宗。木人巷三十六关，过得了关的人才配谈慈悲。'},
+ {k:'w_sect_wudang',n:'武当',d:'云海之上的道门。剑走轻灵，讲的是后发先至、以柔克刚。'},
+ {k:'w_sect_emei',n:'峨眉',d:'金顶佛光，女弟子居多。心剑合一，剑在水里，也在心里。'},
+ {k:'w_sect_blood',n:'血刀门',d:'黑崖之上的凶地。入门礼是杀人，活下来的人才算同门。'},
+];
+const WORLD=[
+ ['大业十三年 · 天下大势','朝廷北有雁门关、西有凉州铁骑，南边是漕运与商帮。江湖上四派并立，明面尊朝廷，暗里各管一片。三年前玄阴教被六派围攻，教主下落不明，教众散入江湖。'],
+ ['四大门派','少林（武学正宗，木人巷三年一轮）、武当（道门，剑走轻灵）、峨眉（金顶，多为女弟子）、血刀门（黑崖凶地，入门要杀人）。'],
+ ['玄阴教','曾被视作魔教。教主是你叔父，教中有“外堂”“内堂”之分。玄阴令可调动边军，是朝廷最忌惮的东西。'],
+ ['玄阴令','不是武功秘籍，而是一份边军调动的凭信。持令者可越过兵部直接调兵。十七年前，你父亲奉命守令，最后死在六派手里。'],
+ ['十七人名单','名册上十九个名字，第一个被朱砂划掉的是你父亲，第十九行写着：“持青玉坠者，续。”'],
+ ['势力版图','朝廷（刑部/兵部/大内）↔ 六派 ↔ 玄阴余党 ↔ 漕运商会。四股势力互相牵制，任何一方倒了，江湖都要重排。'],
+ ['时间线','十七年前 雁门旧案 → 十六年前 破庙雪夜 → 三年前 玄阴教被围 → 现在 你入江湖。'],
+];
+$('btnWorld').onclick=()=>{
+  $('worldBody').innerHTML=WORLD.map(([t,d])=>`<div style="margin-bottom:12px"><b style="color:#e8c46a">${t}</b><div style="color:#b3a68c;margin-top:3px">${d}</div></div>`).join('');
+  $('worldSheet').classList.remove('hidden');
+};
+$('worldClose').onclick=()=>$('worldSheet').classList.add('hidden');
+
+const LOC_ART={changan:'w_loc_changan',luoyang:'w_loc_luoyang',mangshan:'w_loc_mangshan',
+  luoyan:'w_loc_luoyan',yanmen:'w_loc_yanmen',swordtomb:'w_loc_swordtomb',ferry:'w_loc_luoyang',
+  shaolin:'w_sect_shaolin',wudang:'w_sect_wudang',emei:'w_sect_emei',bloodgate:'w_sect_blood'};
+$('btnMap').onclick=()=>{
+  const TYPE={town:'城镇',sect:'门派',wild:'野外'};
+  const rows=(S.locs||[]).map(L=>{
+    const tag=TYPE[L.type]||'';
+    return `<div class="pick ${L.here?'on':''}" style="display:flex;gap:10px;align-items:flex-start">
+      <img src="art/png/${LOC_ART[L.id]||'w_loc_changan'}.png" onerror="this.style.display='none'"
+        style="width:56px;height:56px;border-radius:9px;object-fit:cover;border:1px solid #3b3527;flex:0 0 auto">
+      <div style="flex:1;min-width:0">
+      <b>${L.name} <span style="font-family:system-ui;font-size:10px;color:#8b8471">${tag}${L.here?' · 你在这里':''}</span></b>
+      <span>${L.desc}</span>
+      ${L.here?'':(L.unlocked
+        ? `<button class="btn2" data-travel="${L.id}">传送（${L.cost} 时辰）</button>`
+        : '<span style="color:#6f6858">未解锁（走剧情解锁）</span>')}
+      </div></div>`;
+  }).join('');
+  $('mapList').innerHTML=rows;
+  $('mapSheet').classList.remove('hidden');
+};
+$('mapClose').onclick=()=>$('mapSheet').classList.add('hidden');
+$('jhClose').onclick=()=>$('jhSheet').classList.add('hidden');
+$('shClose').onclick=()=>$('socialHub').classList.add('hidden');
+$('stTabs').onclick=(e)=>{const t=e.target.closest('.t'); if(!t)return; window.__stTab=t.dataset.st; openStatus(window.__stTab);};
+$('jhTabs').onclick=(e)=>{const t=e.target.closest('.t'); if(!t)return; openJianghu(t.dataset.jh);};
+$('cxTabs').onclick=(e)=>{const t=e.target.closest('.t'); if(!t)return; openCodex(t.dataset.cx);};
+$('cxClose').onclick=()=>$('codexSheet').classList.add('hidden');
+$('shTabs').onclick=(e)=>{const t=e.target.closest('.t'); if(!t)return; openSocialHub(t.dataset.sh);};
+$('btnMail').onclick=()=>openMail();
+$('btnSet').onclick=()=>openSettings();
+$('btnWorld2').onclick=()=>$('btnWorld').click();
+$('btnMap2').onclick=()=>$('btnMap').click();
+$('btnMore').onclick=()=>$('moreSheet').classList.remove('hidden');
+$('moreClose').onclick=()=>$('moreSheet').classList.add('hidden');
+$('talkClose').onclick=()=>$('talkSheet').classList.add('hidden');
+$('feedClose').onclick=()=>$('feedSheet').classList.add('hidden');
+$('statusClose').onclick=()=>{window.__pickSlot=null;$('statusSheet').classList.add('hidden');};
+$('bagClose').onclick=()=>$('bagSheet').classList.add('hidden');
+$('afterClose').onclick=()=>{ $('afterSheet').classList.add('hidden'); act('clearAftermath'); };
+$('artsClose').onclick=()=>$('artsSheet').classList.add('hidden');
+$('onlineClose').onclick=()=>$('onlineSheet').classList.add('hidden');
+$('rankClose').onclick=()=>$('rankSheet').classList.add('hidden');
+$('guildClose').onclick=()=>$('guildSheet').classList.add('hidden');
+$('boardClose').onclick=()=>$('boardSheet').classList.add('hidden');
+$('btnExport').onclick=()=>{ location.href='/api/export?token='+encodeURIComponent(token); };
+$('btnImport').onclick=()=>$('importFile').click();
+$('importFile').onchange=async(e)=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  try{
+    const txt=await f.text(); const data=JSON.parse(txt);
+    if(!data || !data.player) return toastMsg('这不是存档文件');
+    if(!confirm('导入会覆盖当前进度，继续？')) return;
+    const r=await api('/api/import?token='+encodeURIComponent(token), {data:data});
+    if(r && r.ok){ toastMsg('存档已导入，正在重载'); setTimeout(()=>location.reload(),900); }
+    else toastMsg((r&&r.error)||'导入失败');
+  }catch(err){ toastMsg('读取失败：'+err.message); }
+};
+$('btnInstall').onclick=()=>{ if(window.installApp) window.installApp(); };
+$('setClose').onclick=()=>$('setSheet').classList.add('hidden');
+$('testSfx').onclick=()=>{ unlockAudio(); playSfx('win'); };
+$('testBgm').onclick=()=>{ stopBgm(); unlockAudio();
+  if($('audioState')) $('audioState').textContent='音频状态：'+(AC?AC.state:'未初始化')+' · 音乐'+(musicOn?'播放中':'已停'); };
+$('bgmVol').oninput=(e)=>{VOLS.bgm=+e.target.value;$('bgmVal').textContent=VOLS.bgm;setVols();};
+$('sfxVol').oninput=(e)=>{VOLS.sfx=+e.target.value;$('sfxVal').textContent=VOLS.sfx;setVols();playSfx('click');};
+$('mailClose').onclick=()=>$('mailSheet').classList.add('hidden');
+$('mailClaimAll').onclick=()=>act('mailClaimAll').then(()=>{ $('mailSheet').classList.add('hidden'); openMail(); });
+$('socialClose').onclick=()=>{ $('socialSheet').classList.add('hidden'); clearInterval(socialTimer); };
+$('sTabWorld').onclick=()=>{socialTab='world';renderSocial();};
+$('sTabFriend').onclick=()=>{socialTab='friend';renderSocial();};
+$('sTabDm').onclick=()=>{socialTab='dm';renderSocial();};
+$('sSend').onclick=sendChat;
+document.addEventListener('click',(e)=>{
+  const d=e.target.dataset||{};
+  if(d.dm){ socialTo=d.dm; socialTab='dm'; renderSocial(); }
+  if(d.addfriend){ const k=$('fKey').value.trim(); if(!k) return; act('friendAdd',{key:k}).then(()=>renderSocial()); }
+  if(d.unfriend2){ act('friendRemove',{uid:d.unfriend2}).then(()=>renderSocial()); }
+});
+document.addEventListener('click',(e)=>{
+  const d=e.target.dataset||{};
+  if(d.gift) return act('gift',{npcId:d.gift}).then(r=>{
+    toastMsg(((r&&r.msgs)||['他收下了'])[0]);
+    const ts=$('talkSheet'); if(ts&&!ts.classList.contains('hidden')) showTalk(d.gift,r);
+  });
+  if(d.claim) return act('claim',{id:d.claim}).then(()=>openBoard());
+  if(d.sign) return act('signIn').then(()=>openBoard());
+  if(d.claimmail) return act('mailClaim',{id:d.claimmail}).then(()=>{ $('mailSheet').classList.add('hidden'); openMail(); });
+  if(d.claimcx){ const [k,i]=d.claimcx.split(':'); return act('codexClaim',{kind:k,level:Number(i)}).then(()=>openBoard()); }
+  if(d.train) return act('trainBatch',{times:Number(d.train)}).then(()=>{ $('boardSheet').classList.add('hidden'); });
+  if(d.batch) return act('workBatch',{kind:d.work,times:Number(d.batch)}).then(()=>{ $('boardSheet').classList.add('hidden'); });
+  if(d.invite) return act('partyInvite',{uid:d.invite});
+  if(d.party==='accept') return act('partyAccept').then(()=>renderSocial());
+  if(d.party==='leave') return act('partyLeave').then(()=>renderSocial());
+  if(d.work) return act('work',{kind:d.work}).then(()=>{ $('boardSheet').classList.add('hidden'); });
+  if(d.quest) return act('npcQuest',{id:d.quest}).then(r=>{
+    const msg=((r&&r.msgs)||[''])[0]||'';
+    const ts=$('talkSheet');
+    if(ts && !ts.classList.contains('hidden')){ $('talkLine').textContent=msg; }
+    else { toastMsg(msg); openOnline('npc'); }
+  });
+  if(d.lore) return act('npcLore',{id:d.lore}).then(r=>{
+    const ts=$('talkSheet'); if(ts) ts.classList.add('hidden');
+    const t=((r&&r.msgs)||[])[0];
+    if(t&&String(t).startsWith('📖')){ const d2=document.createElement('div'); d2.className='sheet';
+      d2.innerHTML='<div class="box" style="margin-top:50px"><h3>旧 事</h3><p style="font-size:13.5px;line-height:2;color:#cbbd9e">'+t.slice(2)+'</p><button class="btn" style="margin-top:14px">收 起</button></div>';
+      d2.querySelector('button').onclick=()=>d2.remove();
+      document.body.appendChild(d2);
+    } else alert(t||'');
+  });
+  if(d.friend) return act('friendAdd',{uid:d.friend}).then(r=>{
+    toastMsg(((r&&r.msgs)||['已发送'])[0]); openOnline('friend');
+  });
+  if(d.chat){ socialTo=d.chat; $('onlineSheet').classList.add('hidden'); return openSocial('dm'); }
+  if(d.talk) return act('talkNpc',{id:d.talk}).then(r=>{ showTalk(d.talk, r); });
+  if(d.hit) return act('attackNpc',{id:d.hit}).then(()=>{ $('onlineSheet').classList.add('hidden'); $('talkSheet').classList.add('hidden'); });
+  if(d.travel) return act('travel',{id:d.travel}).then(()=>{ $('mapSheet').classList.add('hidden'); });
+  if(d.tide) return act('tideVote',{side:d.tide}).then(()=>openBoard());
+  if(d.life){
+    if(d.life==='reincarnate'){ if(!confirm('转世会重置剧情与属性，保留传承加成与图鉴。确定？')) return; return act('reincarnate').then(()=>{ $('boardSheet').classList.add('hidden'); }); }
+    if(d.life==='sectchallenge') return act('sectChallenge').then(()=>{ $('boardSheet').classList.add('hidden'); });
+    const m={buyhome:'buyHome',rest:'restHome',up:'upgradeHome',secttask:'sectTask',codex:'buyCodex'};
+    if(d.life==='mount') return act('buyMount',{kind:'horse'}).then(()=>openBoard());
+    return act(m[d.life]).then(()=>openBoard());
+  }
+});
+document.addEventListener('click',(e)=>{
+  const d=e.target.dataset||{};
+  if(d.more){
+    window.__pickSlot=null;
+    if(d.more==='world'){ $('moreSheet').classList.add('hidden'); return openBoard?0:0; }
+    if(d.more==='map'){ $('moreSheet').classList.add('hidden'); return $('btnMap').click(); }
+    if(d.more==='log'){ $('moreSheet').classList.add('hidden'); return openLog?openLog():0; }
+    if(d.more==='reset'){ $('moreSheet').classList.add('hidden'); return $('btnReset').click(); }
+    if(d.more==='out'){ $('moreSheet').classList.add('hidden'); return $('btnOut').click(); }
+  }
+  if(d.str==='train') return act('train').then(()=>openStatus('train'));
+  if(d.str==='train3') return act('trainBatch',{times:3}).then(()=>openStatus('train'));
+  if(d.str==='meditate') return act('meditate').then(()=>openStatus('train'));
+  if(d.str==='pill') return act('takePill').then(()=>openStatus('train'));
+  if(d.claim) return act('claim',{id:d.claim}).then(()=>openJianghu('task'));
+  if(d.jhdaily) return act('toDaily').then(()=>{ $('jhSheet').classList.add('hidden'); });
+  if(d.jhmeet) return act('meet').then(()=>openJianghu('meet'));
+  if(d.jhexplore) return act('explore').then(()=>openJianghu('explore'));
+  if(d.jhfight) return act('fight').then(()=>{ $('jhSheet').classList.add('hidden'); });
+  if(d.jhpvp) return act('pvpFight').then(()=>{ $('jhSheet').classList.add('hidden'); });
+  if(d.enh) return act('enhanceGear',{slot:d.enh}).then(()=>openStatus());
+  if(d.pick){ window.__pickSlot=(window.__pickSlot===d.pick?null:d.pick); return openStatus(); }
+  if(d.eq!==undefined) return act('equipGear',{idx:Number(d.eq)}).then(()=>{ window.__pickSlot=null; openStatus(); });
+  if(d.mind) return act('setMind',{key:d.mind}).then(()=>openStatus());
+  if(d.art) return act('setArt',{key:d.art}).then(()=>openStatus());
+  if(d.job) return act('setJob',{key:d.job}).then(()=>openStatus());
+  if(d.forge) return act('forge',{slot:d.forge}).then(()=>openBag());
+  if(d.equip!==undefined) return act('equipGear',{idx:Number(d.equip)}).then(()=>openBag());
+  if(d.sell!==undefined) return act('sellGear',{idx:Number(d.sell)}).then(()=>openBag());
+  if(d.join) return act('guildJoin',{id:d.join}).then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+  if(d.guild==='create'){ const n=prompt('帮派名（最多 8 字）',''); if(!n) return; return act('guildCreate',{name:n}).then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); }); }
+  if(d.guild==='donate') return act('guildDonate').then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+  if(d.guild==='leave') return act('guildLeave').then(()=>{ $('guildSheet').classList.add('hidden'); openGuild(); });
+});
+$('tabJob').onclick=()=>{artTab='job';renderArts();};
+$('tabArt').onclick=()=>{artTab='art';renderArts();};
+$('tabMind').onclick=()=>{artTab='mind';renderArts();};
+document.addEventListener('click',(e)=>{
+  const j=e.target.dataset&&e.target.dataset.job; if(j) return act('setJob',{job:j}).then(()=>{renderArts();});
+  const a=e.target.dataset&&e.target.dataset.art; if(a) return act('setArt',{key:a}).then(()=>{renderArts();});
+  const m=e.target.dataset&&e.target.dataset.mind; if(m) return act('setMind',{key:m}).then(()=>{renderArts();});
+});
+$('btnReset').onclick=()=>{ if(confirm('重新开始？当前进度会清空')) act('restart'); };
+$('btnOut').onclick=()=>{ localStorage.removeItem('wuxia_token'); token=''; $('game').classList.add('hidden'); $('auth').classList.remove('hidden'); setMode('login'); };
+
+let twTimer=null, twBusy=false, twFull='';
+let lastChapter='';
+function showTalk(npcId, r){
+  const npcs=(S.npcsHere||[]);
+  const n=npcs.find(x=>x.id===npcId)||{};
+  const raw=((r&&r.msgs)||['……'])[0]||'……';
+  const line=String(raw).replace(/^💬\s*[^：]*：/,'');
+  $('talkName').textContent=n.name||'江湖人';
+  $('talkTitle').textContent=[n.title,n.trait].filter(Boolean).join(' · ');
+  $('talkArt').src=n.art?('art/png/'+n.art+'.png'):'art/scene-ai.jpg';
+  $('talkLine').textContent=line;
+  $('talkActs').innerHTML='<button class="btn2" data-talk="${}">再聊聊</button>'
+    .replace('${}',npcId)
+    +'<button class="btn2" data-lore="'+npcId+'">听过去</button>'
+    +'<button class="btn2" data-quest="'+npcId+'">委托</button>'
+    +'<button class="btn2" data-gift="'+npcId+'">送点东西</button>'
+    +'<button class="btn2" data-hit="'+npcId+'">动手</button>';
+  $('talkSheet').classList.remove('hidden');
+}
+function toastMsg(t){
+  let el=document.getElementById('toastMsg');
+  if(!el){ el=document.createElement('div'); el.id='toastMsg'; el.className='toastMsg'; document.body.appendChild(el); }
+  el.textContent=t||''; el.classList.add('on');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),1800);
+}
+function showChapterCard(ch){
+  const old=document.getElementById('chapterCard');
+  if(old) old.remove();
+  const d=document.createElement('div');
+  d.id='chapterCard'; d.className='chapterCard';
+  d.innerHTML='<div class="no">CHAPTER</div><div class="nm">'+ch+'</div>'
+    +'<div class="sub">点击继续</div><div class="cta">继 续</div>';
+  d.onclick=()=>{ d.remove(); };
+  document.body.appendChild(d);
+}
+function typewriter(html){
+  clearInterval(twTimer);
+  twFull=html;
+  const el=$('stText');
+  el.classList.add('typing');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=html;
+  const plain=tmp.textContent||'';
+  let i=0; twBusy=true; el.innerHTML='';
+  twTimer=setInterval(()=>{
+    i+=6;
+    if(i>=plain.length){ finishTyping(); return; }
+    el.textContent=plain.slice(0,i);
+  },16);
+}
+function finishTyping(){
+  clearInterval(twTimer);
+  const el=$('stText');
+  el.classList.remove('typing');
+  el.innerHTML=twFull;
+  twBusy=false;
+  const ch1=$('choices'); if(ch1) ch1.classList.remove('typing');
+  document.querySelectorAll('.choices .ch').forEach(b=>b.classList.remove('dim'));
+}
+function maybeOnboard(){
+  if(localStorage.getItem('wuxia_onboard')) return;
+  const tips=[
+    ['第一步：选你的路','点下方的文字选项推进剧情。每次选择都会改变你的属性与结局。'],
+    ['第二步：过日子','底部「委托」接每日任务、打工赚钱；「探索」在危险地带找架打或捡东西。'],
+    ['第三步：变强','「武学」切职业与招式，「修炼」涨内力。内力到阈值会「境界突破」。'],
+  ];
+  let i=0;
+  const show=()=>{
+    if(i>=tips.length){ localStorage.setItem('wuxia_onboard','1'); const el=document.getElementById('onboard'); if(el) el.remove(); return; }
+    const [t,d]=tips[i];
+    const el=document.getElementById('onboard');
+    el.querySelector('h3').textContent=t;
+    el.querySelector('p').textContent=d;
+    el.querySelector('button').textContent=(i===tips.length-1?'开始':'下一 步');
+  };
+  const box=document.createElement('div');
+  box.id='onboard';
+  box.className='sheet';
+  box.innerHTML='<div class="box" style="margin-top:60px"><h3></h3><p style="font-size:13.5px;line-height:1.9;color:#cbbd9e"></p><button class="btn" style="margin-top:14px">下一 步</button></div>';
+  box.querySelector('button').onclick=()=>{ i++; show(); };
+  document.body.appendChild(box);
+  show();
+}
+(async function boot(){
+  try{
+    if(!token){ $('auth').classList.remove('hidden'); setMode('login'); return; }
+    const st=await api('/api/state?token='+token);
+    if(st.error){ localStorage.removeItem('wuxia_token'); $('auth').classList.remove('hidden'); setMode('login'); return; }
+    S=st; showGame();
+  }catch(e){
+    $('auth').classList.remove('hidden'); setMode('login'); $('err').textContent='加载失败，请刷新';
+  }
+})();
+</script>
+<script>
+/* 兼容：确保 $ 可用 */
+if (typeof window.$ === 'undefined') { window.$ = (id) => document.getElementById(id); }
+
+window.addEventListener('error',function(e){
+  try{var d=document.createElement('div');
+    d.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;background:rgba(120,24,20,.96);color:#fff;font:12px/1.5 monospace;padding:8px;border-radius:8px;white-space:pre-wrap';
+    d.textContent='脚本错误：'+(e.message||'未知')+' @'+(e.lineno||'');
+    document.body.appendChild(d);}catch(x){}
+});
+setTimeout(function(){
+  try{
+    var a=document.getElementById('auth'), g=document.getElementById('game');
+    if(a && g && a.classList.contains('hidden') && g.classList.contains('hidden')){
+      a.classList.remove('hidden'); console.warn('failsafe');
+    }
+  }catch(e){}
+},700);
+
+
+/* ================= 音频：合成音效 + 循环 BGM ================= */
+let AC=null, sfxGain=null, bgmGain=null, audioReady=false;
+let musicTimer=null, musicNodes=[], musicOn=false, musicStep=0;
+const VOLS={ bgm:Number(localStorage.getItem('wuxia_bgm')||45), sfx:Number(localStorage.getItem('wuxia_sfx')||70) };
+
+function ensureAudio(){
+  if(audioReady) return true;
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    sfxGain=AC.createGain(); sfxGain.gain.value=VOLS.sfx/100*0.6; sfxGain.connect(AC.destination);
+    bgmGain=AC.createGain(); bgmGain.gain.value=VOLS.bgm/100*0.5; bgmGain.connect(AC.destination);
+    audioReady=true;
+    return true;
+  }catch(e){ return false; }
+}
+function setVols(){
+  localStorage.setItem('wuxia_bgm',VOLS.bgm); localStorage.setItem('wuxia_sfx',VOLS.sfx);
+  if(sfxGain) sfxGain.gain.value=VOLS.sfx/100*0.6;
+  if(bgmGain) bgmGain.gain.value=VOLS.bgm/100*0.5;
+}
+function playSfx(kind){
+  if(!ensureAudio()) return;
+  const t=AC.currentTime;
+  const mk=(freq,type,dur,vol,slide)=>{
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t);
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40,slide),t+dur);
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t+dur+0.02);
+  };
+  if(kind==='click') mk(760,'square',0.05,0.12);
+  else if(kind==='hit') mk(200,'triangle',0.12,0.24,110);
+  else if(kind==='crit'){ mk(520,'square',0.1,0.22,900); setTimeout(()=>mk(760,'square',0.1,0.18,1200),60); }
+  else if(kind==='break') mk(300,'sawtooth',0.3,0.22,80);
+  else if(kind==='ult'){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>mk(f,'sine',0.45,0.18),i*70)); }
+  else if(kind==='heal') mk(660,'sine',0.22,0.16,990);
+  else if(kind==='win'){ [523,659,784].forEach((f,i)=>setTimeout(()=>mk(f,'triangle',0.3,0.2),i*110)); }
+}
+/* 循环 BGM：五声音阶旋律 + 低音衬垫 + 钟声 */
+const SCALE=[146.83,164.81,196.00,220.00,261.63,293.66,329.63,392.00];
+function startBgm(){
+  if(!AC||musicOn) return;
+  musicOn=true; musicStep=0;
+  [73.42,110.00].forEach((f,i)=>{
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type='sine'; o.frequency.value=f; g.gain.value=i?0.16:0.26;
+    const lfo=AC.createOscillator(), lg=AC.createGain();
+    lfo.frequency.value=0.05+i*0.02; lg.gain.value=0.028;
+    lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    o.connect(g); g.connect(bgmGain); o.start();
+    musicNodes.push(o,lfo);
+  });
+  const tick=()=>{
+    if(!musicOn||!AC) return;
+    const t=AC.currentTime, step=musicStep++;
+    if(Math.random()<0.8){
+      const f=SCALE[Math.floor(Math.random()*SCALE.length)];
+      const o=AC.createOscillator(), g=AC.createGain();
+      o.type=Math.random()<0.25?'triangle':'sine';
+      o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.3,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+1.15);
+      o.connect(g); g.connect(bgmGain); o.start(t); o.stop(t+1.2);
+    }
+    if(step%8===0){
+      const f=SCALE[Math.floor(Math.random()*3)+3]*2;
+      const o=AC.createOscillator(), g=AC.createGain();
+      o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(0.22,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+2.6);
+      o.connect(g); g.connect(bgmGain); o.start(t); o.stop(t+2.7);
+    }
+    musicTimer=setTimeout(tick, 900+Math.random()*420);
+  };
+  tick();
+}
+function stopBgm(){
+  musicOn=false; clearTimeout(musicTimer); musicTimer=null;
+  musicNodes.forEach(n=>{try{n.stop()}catch(e){}}); musicNodes=[];
+}
+function openSettings(){
+  const s=$('setSheet'); if(!s) return;
+  $('bgmVol').value=VOLS.bgm; $('sfxVol').value=VOLS.sfx;
+  $('bgmVal').textContent=VOLS.bgm; $('sfxVal').textContent=VOLS.sfx;
+  s.classList.remove('hidden');
+  ensureAudio();
+}
+/* 首次手势激活音频：resume 后必须再起音乐，否则安卓无声 */
+function unlockAudio(){
+  if(!ensureAudio()) return;
+  const go=()=>{ if(!musicOn) startBgm(); const hint=$('audioHint'); if(hint) hint.remove(); };
+  if(AC.state==='suspended' || AC.state==='interrupted'){
+    AC.resume().then(go).catch(()=>{});
+  } else { go(); }
+}
+
+document.addEventListener('pointerdown', unlockAudio, {passive:true});
+document.addEventListener('touchend', unlockAudio, {passive:true});
+document.addEventListener('click', unlockAudio);
+document.addEventListener('visibilitychange',()=>{
+  if(!AC) return;
+  if(document.hidden) AC.suspend(); else AC.resume();
+});
+</script>
+
+<script>
+/* ===== 独立的登录/注册兜底：不依赖前面脚本是否出错 ===== */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function setMode(m){
+    var reg = m === 'reg';
+    localStorage.setItem('wuxia_mode', m);
+    var tl=$('tabLogin'), tr=$('tabReg'), nb=$('nickBox'), pb=$('p2Box'), btn=$('doAuth'), err=$('err');
+    if(tl) tl.classList.toggle('on', !reg);
+    if(tr) tr.classList.toggle('on', reg);
+    if(nb) nb.classList.toggle('hidden', !reg);
+    if(pb) pb.classList.toggle('hidden', !reg);
+    if(btn) btn.textContent = reg ? '注 册' : '登 录';
+    if(err) err.textContent = '';
+  }
+  function showErr(t){ var e=$('err'); if(e){ e.textContent=t; } else { alert(t); } }
+  async function submit(){
+    var u=($('u')&&$('u').value||'').trim();
+    var p=($('p')&&$('p').value||'');
+    var n=($('n')&&$('n').value||'').trim();
+    var p2=($('p2')&&$('p2').value||'');
+    var reg = (localStorage.getItem('wuxia_mode')==='reg') ||
+              ($('tabReg') && $('tabReg').classList.contains('on'));
+    if(!/^[A-Za-z0-9_]{3,16}$/.test(u)) return showErr('账号要 3-16 位字母/数字/下划线');
+    if(p.length<6) return showErr('密码至少 6 位');
+    if(reg && p2 && p!==p2) return showErr('两次密码不一致');
+    var url = reg ? '/api/register' : '/api/login';
+    var body = reg ? {user:u, pass:p, nick:n||u} : {user:u, pass:p};
+    try{
+      var r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      var d = await r.json();
+      if(d.error) return showErr(d.error);
+      if(!d.token) return showErr('服务端没有返回凭证');
+      localStorage.setItem('wuxia_token', d.token);
+      if(typeof window.showGame === 'function' && d.state){ try{ window.S = d.state; window.showGame(); return; }catch(e){} }
+      location.reload();
+    }catch(e){ showErr('网络错误：'+e.message); }
+  }
+  function bind(){
+    var tl=$('tabLogin'), tr=$('tabReg'), btn=$('doAuth');
+    if(tl) tl.onclick=function(){ setMode('login'); };
+    if(tr) tr.onclick=function(){ setMode('reg'); };
+    if(btn) btn.onclick=function(ev){ ev.preventDefault(); submit(); };
+    var p=$('p'); if(p) p.onkeydown=function(e){ if(e.key==='Enter') submit(); };
+    // 若已登录则直接进入
+    var tk=localStorage.getItem('wuxia_token');
+    if(tk && typeof window.fetchState === 'undefined'){
+      fetch('/api/state?token='+tk).then(function(r){return r.json()}).then(function(st){
+        if(st && !st.error && typeof window.showGame==='function'){ window.S=st; try{ window.showGame(); }catch(e){} }
+      }).catch(function(){});
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+})();
+</script>
+
+<script>
+/* ===== PWA：离线缓存 + 添加到桌面 ===== */
+(function(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+  window.__installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__installPrompt = e; });
+  window.installApp = async function(){
+    if(window.__installPrompt){
+      window.__installPrompt.prompt();
+      const r = await window.__installPrompt.userChoice;
+      window.__installPrompt = null;
+      return r && r.outcome === 'accepted';
+    }
+    alert('安装方式：\n\n① 安卓 Chrome：地址栏右侧菜单 →「安装应用 / 添加到主屏幕」\n② 华为浏览器：右下角菜单 →「添加到桌面」\n③ iPhone Safari：分享 →「添加到主屏幕」\n\n加完后桌面会出现「江湖行」图标，打开即全屏。');
+    return false;
+  };
+})();
+</script>
+</body></html>

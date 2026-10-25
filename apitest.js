@@ -1,0 +1,28 @@
+const B='http://127.0.0.1:8900';
+const j=async(p,b,method)=>{const r=await fetch(B+p,{method:method||(b?'POST':'GET'),headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});
+  let d=null; try{ d=await r.json(); }catch(e){ d={__nonjson:true}; } return {code:r.status, d};};
+(async()=>{
+  const bad=[];
+  const check=async(name,promise,expect)=>{ const r=await promise;
+    if(r.code>=500) bad.push(name+' → HTTP '+r.code+' '+JSON.stringify(r.d).slice(0,80));
+    if(expect && r.code!==expect) bad.push(name+' → 期望 '+expect+' 实得 '+r.code+' '+JSON.stringify(r.d).slice(0,60));
+  };
+  await check('注册短密码', j('/api/register',{user:'abc12345',pass:'123'}), 400);
+  await check('注册非法账号', j('/api/register',{user:'a b',pass:'123456'}), 400);
+  await check('登录错密码', j('/api/login',{user:'nouser',pass:'123456'}), 400);
+  await check('无 token 状态', j('/api/state'), 400);
+  const reg=await j('/api/register',{user:'ap'+Math.floor(Math.random()*9000+1000),pass:'abc123',nick:'接口'});
+  const t=reg.d.token;
+  await check('非法选择 idx', j('/api/action',{token:t,type:'choose',idx:99}), 200);
+  await check('未知动作', j('/api/action',{token:t,type:'nothing'}), 400);
+  await check('传送未解锁', j('/api/action',{token:t,type:'travel',id:'yanmen'}), 200);
+  await check('战斗无效指令', j('/api/action',{token:t,type:'battle',move:'xx'}), 400);
+  await check('领取不存在邮件', j('/api/action',{token:t,type:'mailClaim',id:'nope'}), 200);
+  await check('创建帮派(空名)', j('/api/action',{token:t,type:'guildCreate',name:''}), 200);
+  await check('GM 无密钥', j('/api/gm/players'), 403);
+  await check('GM 错误玩家', j('/api/gm/set',{key:'gm-7f3a91c2',uid:'000000',attr:'hp',value:1}), 404);
+  await check('重开', j('/api/action',{token:t,type:'restart'}), 200);
+  await check('状态正常', j('/api/state?token='+t), 200);
+  console.log('接口问题:', bad.length);
+  bad.forEach(x=>console.log('  -',x));
+})();
